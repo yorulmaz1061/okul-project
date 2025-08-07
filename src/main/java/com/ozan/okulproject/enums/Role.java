@@ -2,8 +2,7 @@ package com.ozan.okulproject.enums;
 
 public enum Role {
     ADMIN("Admin"),
-    MANAGER("Dean"),
-    ASSISTANT_MANAGER("ViceDean"),
+    MANAGER("Manager"),
     TEACHER("Teacher"),
     STUDENT("Student");
 

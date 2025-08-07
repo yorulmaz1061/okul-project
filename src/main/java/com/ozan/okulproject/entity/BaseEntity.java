@@ -25,7 +25,6 @@ public class BaseEntity {
     private LocalDateTime lastUpdateDateTime;
     @Column(nullable = false)
     private Long lastUpdateUserId;
-
     private Boolean isDeleted = false;
 
     @PrePersist

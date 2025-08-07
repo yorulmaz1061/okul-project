@@ -1,11 +1,16 @@
-package com.ozan.okulproject.entity;
+package com.ozan.okulproject.entity.logic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.ozan.okulproject.entity.BaseEntity;
+import com.ozan.okulproject.entity.user.Student;
+import com.ozan.okulproject.entity.user.Teacher;
+import com.ozan.okulproject.entity.user.User;
 import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,10 +25,10 @@ public class Meet extends BaseEntity {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate date;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "US")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime startTime;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "US")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime endTime;
 
     @ManyToMany
@@ -32,8 +37,9 @@ public class Meet extends BaseEntity {
             joinColumns = @JoinColumn(name = "meet_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
-    private List<User> studentList;
+    private List<Student> studentList = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    private User advisorTeacher;
+    @ManyToOne
+    @JoinColumn(name = "teacher_id")
+    private Teacher teacher;
 }

@@ -1,11 +1,13 @@
-package com.ozan.okulproject.dto;
+package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ozan.okulproject.enums.Term;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,4 +32,7 @@ public class EducationTermDTO {
     @NotNull(message = "Please enter last registration date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate lastRegistrationDate;
+
+    @JsonIgnore
+    private List<LessonDTO> lessons;
 }
