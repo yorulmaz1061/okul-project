@@ -1,23 +1,9 @@
 package com.ozan.okulproject.service.impl;
 
-import com.ozan.okulproject.config.KeycloakProperties;
-import com.ozan.okulproject.dto.users.UserDTO;
-import com.ozan.okulproject.service.KeycloakService;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.idm.ClientRepresentation;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.stereotype.Service;
+//import com.ozan.okulproject.service.KeycloakService;
 
-import javax.ws.rs.core.Response;
-import java.util.List;
 
-import static java.util.Arrays.asList;
-import static org.keycloak.admin.client.CreatedResponseUtil.getCreatedId;
-
+/*
 @Service
 public class KeycloakServiceImpl implements KeycloakService {
 
@@ -83,9 +69,15 @@ public class KeycloakServiceImpl implements KeycloakService {
         keycloak.close();
     }
 
-    private Keycloak getKeycloakInstance(){
-        return Keycloak.getInstance(keycloakProperties.getAuthServerUrl(),
-                keycloakProperties.getMasterRealm(), keycloakProperties.getMasterUser()
-                , keycloakProperties.getMasterUserPswd(), keycloakProperties.getMasterClient());
+    private Keycloak getKeycloakInstance() {
+        return KeycloakBuilder.builder()
+                .serverUrl(keycloakProperties.getAuthServerUrl())
+                .realm(keycloakProperties.getMasterRealm())               // Usually "master"
+                .username(keycloakProperties.getMasterUser())             // Admin username
+                .password(keycloakProperties.getMasterUserPswd())         // Admin password
+                .clientId(keycloakProperties.getMasterClient())           // Client id, e.g. "admin-cli"
+                .clientSecret(keycloakProperties.getClientSecret()) // Client secret, if any
+                .grantType(OAuth2Constants.PASSWORD)
+                .build();
     }
-}
+}*/

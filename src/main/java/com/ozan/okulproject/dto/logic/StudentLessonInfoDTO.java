@@ -1,7 +1,7 @@
 package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ozan.okulproject.dto.users.StudentDTO;
+import com.ozan.okulproject.dto.users.StudentDetailsDTO;
 import lombok.*;
 
 @Getter
@@ -29,6 +29,6 @@ public class StudentLessonInfoDTO {
 
     private LessonDTO lesson;
 
-    private StudentDTO student;
+    private StudentDetailsDTO student;
 
 }

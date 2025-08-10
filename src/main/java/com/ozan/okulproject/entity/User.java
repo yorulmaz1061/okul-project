@@ -1,8 +1,7 @@
-package com.ozan.okulproject.entity.user;
+package com.ozan.okulproject.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ozan.okulproject.entity.BaseEntity;
 import com.ozan.okulproject.enums.Gender;
 import com.ozan.okulproject.enums.Role;
 import lombok.*;
@@ -10,13 +9,12 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDate;
 
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "role")
 
 public class User extends BaseEntity {
 
@@ -48,13 +46,23 @@ public class User extends BaseEntity {
 
     private String fatherName;
 
-    private boolean isActive;
+    private boolean enabled;
 
-    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Convert(converter = GenderConverter.class)
     private Gender gender;
 
-    @Enumerated(EnumType.STRING)
-    @Column(insertable = false, updatable = false)
+    @Column(nullable = false)
+    @Convert(converter = RoleConverter.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Role role;
+
+    // ===== Teacher-Specific Fields =====
+    @Embedded
+    private TeacherDetails teacherDetails;
+
+    // ===== Student-Specific Fields =====
+    @Embedded
+    private StudentDetails studentDetails;
 
 }

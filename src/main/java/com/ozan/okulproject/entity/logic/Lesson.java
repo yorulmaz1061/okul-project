@@ -1,8 +1,7 @@
 package com.ozan.okulproject.entity.logic;
 
 import com.ozan.okulproject.entity.BaseEntity;
-import com.ozan.okulproject.entity.user.Student;
-import com.ozan.okulproject.entity.user.Teacher;
+import com.ozan.okulproject.entity.User;
 import lombok.*;
 
 import javax.persistence.*;
@@ -24,7 +23,7 @@ public class Lesson extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "teacher_id")
-    Teacher teacher;
+    User teacher;
 
     @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<LessonSchedule> lessonScheduleList = new ArrayList<>();

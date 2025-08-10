@@ -1,29 +1,21 @@
-package com.ozan.okulproject.entity.user;
+package com.ozan.okulproject.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ozan.okulproject.entity.logic.Meet;
 import com.ozan.okulproject.entity.logic.StudentLessonInfo;
 import com.ozan.okulproject.enums.Score;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Embeddable
+@Data
 @NoArgsConstructor
-@Getter
-@Setter
-@Where(clause = "is_deleted=false")
-@DiscriminatorValue("STUDENT")
-public class Student extends User{
-
-    private String getFormattedStudentNumber() {
-        return String.format("STU%05d", getId());
-    }
+@AllArgsConstructor
+public class StudentDetails {
 
     private Integer totalAbsence;
 
@@ -37,9 +29,10 @@ public class Student extends User{
     private Score totalTermLetterScore;
 
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY ,cascade = CascadeType.ALL, orphanRemoval = true)
-    List<StudentLessonInfo> studentLessonInfo;
+    List<StudentLessonInfo> studentLessonInfos;
 
     @ManyToMany(mappedBy = "studentList")
-    List<Meet> meets = new ArrayList<>();
+    List<Meet> meetsForStudent = new ArrayList<>();
+
 
 }

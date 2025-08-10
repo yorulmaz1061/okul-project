@@ -2,9 +2,7 @@ package com.ozan.okulproject.entity.logic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ozan.okulproject.entity.BaseEntity;
-import com.ozan.okulproject.entity.user.Student;
-import com.ozan.okulproject.entity.user.Teacher;
-import com.ozan.okulproject.entity.user.User;
+import com.ozan.okulproject.entity.User;
 import lombok.*;
 
 import javax.persistence.*;
@@ -37,9 +35,9 @@ public class Meet extends BaseEntity {
             joinColumns = @JoinColumn(name = "meet_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
-    private List<Student> studentList = new ArrayList<>();
+    private List<User> studentList = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "teacher_id")
-    private Teacher teacher;
+    private User teacher;
 }

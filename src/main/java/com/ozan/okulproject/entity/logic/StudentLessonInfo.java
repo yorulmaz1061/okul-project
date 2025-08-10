@@ -1,9 +1,7 @@
 package com.ozan.okulproject.entity.logic;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ozan.okulproject.entity.BaseEntity;
-import com.ozan.okulproject.entity.user.Student;
-import com.ozan.okulproject.entity.user.Teacher;
+import com.ozan.okulproject.entity.User;
 import com.ozan.okulproject.enums.Score;
 import lombok.*;
 
@@ -33,7 +31,7 @@ public class StudentLessonInfo extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    private User student;
 
     @ManyToOne
     @JoinColumn(name = "lesson_id", nullable = false)

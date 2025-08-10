@@ -1,20 +1,19 @@
 package com.ozan.okulproject.dto.users;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ozan.okulproject.enums.Gender;
 import com.ozan.okulproject.enums.Role;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 public class UserDTO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -84,6 +83,8 @@ public class UserDTO {
 
     @NotNull(message = "Please enter user role")
     private Role role;
+
+    private boolean enabled;
 
 }
 

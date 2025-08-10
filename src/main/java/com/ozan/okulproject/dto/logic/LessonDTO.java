@@ -1,7 +1,7 @@
 package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ozan.okulproject.dto.users.TeacherDTO;
+import com.ozan.okulproject.dto.users.TeacherDetailsDTO;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
@@ -33,5 +33,5 @@ public class LessonDTO {
     @NotNull(message = "Please enter isCompulsory")
     private Boolean isMandatory;
 
-    private TeacherDTO teacher;
+    private TeacherDetailsDTO teacher;
 }

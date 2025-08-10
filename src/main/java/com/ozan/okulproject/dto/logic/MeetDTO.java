@@ -1,8 +1,8 @@
 package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.ozan.okulproject.dto.users.StudentDTO;
-import com.ozan.okulproject.dto.users.TeacherDTO;
+import com.ozan.okulproject.dto.users.StudentDetailsDTO;
+import com.ozan.okulproject.dto.users.TeacherDetailsDTO;
 import lombok.*;
 
 import javax.validation.constraints.Future;
@@ -41,10 +41,10 @@ public class MeetDTO {
     private LocalTime endTime;
 
     @NotNull(message = "Please select student/students")
-    private List<StudentDTO> studentDTOList;
+    private List<StudentDetailsDTO> studentDTOList;
 
     @NotNull(message = "Please select advisor teacher")
-    private TeacherDTO teacher;
+    private TeacherDetailsDTO teacher;
 
 
 

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.MeetDTO;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -13,11 +12,11 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@SuperBuilder
+@AllArgsConstructor
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TeacherDTO extends UserDTO {
+public class TeacherDetailsDTO {
 
-    private String formattedTeacherNumber;
     @NotNull(message = "Please enter if the teacher is advisor or not")
     private Boolean isAdvisor;
 
@@ -25,6 +24,6 @@ public class TeacherDTO extends UserDTO {
     private List<LessonDTO> lessons;
 
     @JsonIgnore
-    private List<MeetDTO> meets;
+    private List<MeetDTO> meetsForTeacher;
 
 }
