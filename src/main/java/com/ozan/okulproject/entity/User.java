@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ozan.okulproject.enums.Gender;
 import com.ozan.okulproject.enums.Role;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
+@Where(clause = "is_deleted = false")
 
 public class User extends BaseEntity {
 
@@ -36,7 +38,6 @@ public class User extends BaseEntity {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(unique = true)
     private String phoneNumber;
 
     @Column(unique = true)

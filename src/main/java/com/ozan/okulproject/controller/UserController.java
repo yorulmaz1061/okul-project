@@ -4,6 +4,7 @@ import com.ozan.okulproject.annotation.ExecutionTime;
 import com.ozan.okulproject.dto.users.*;
 import com.ozan.okulproject.entity.ResponseWrapper;
 import com.ozan.okulproject.enums.Role;
+import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
+import javax.validation.constraints.Min;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -42,13 +45,62 @@ public class UserController {
     }
 
     @ExecutionTime
-    @GetMapping({"/{role}"})
+    @GetMapping({"role/{role}"})
     //@RolesAllowed("Admin")
-    @Operation(summary = "Get All By Role")
+    @Operation(summary = "Get Users By Role")
     public ResponseEntity<ResponseWrapper> getUsersByRole(@PathVariable("role") Role role){
         List<UserDTO> userDTOList = userService.getAllByRole(role);
         return ResponseEntity.ok(new ResponseWrapper("Users are successfully retrieved",userDTOList, HttpStatus.OK));
     }
+    @ExecutionTime
+    @GetMapping({"id/{id}"})
+    //@RolesAllowed("Admin")
+    @Operation(summary = "Get User By Id")
+    public ResponseEntity<ResponseWrapper> getUserById(@PathVariable("id") Long id){
+        UserDTO userDTO = userService.getUserById(id);
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",userDTO, HttpStatus.OK));
+    }
+    @ExecutionTime
+    @DeleteMapping({"id/{id}"})
+    //@RolesAllowed("Admin")
+    @Operation(summary = "Delete User By Id")
+    public ResponseEntity<ResponseWrapper> deleteUserById(@PathVariable("id") Long id){
+        UserDTO userDTO = userService.deleteUserById(id);
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully deleted",userDTO, HttpStatus.OK));
+
+    }
+    @ExecutionTime
+    @PutMapping(value = {"id/{id}"})
+    //@RolesAllowed("Admin")
+    @Operation(summary = "Update User")
+    public ResponseEntity<ResponseWrapper> updateUser(@PathVariable("id") Long id, @RequestBody UserDTO dto){
+        UserDTO userDTO = userService.updateUser(id, dto);
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully updated",userDTO,HttpStatus.OK));
+
+    }
+    @ExecutionTime
+    @PatchMapping("teacher/{id}/advisor-status")
+    // @RolesAllowed("Admin")
+    @Operation(summary = "Update Advisor Status")
+    public ResponseEntity<ResponseWrapper> updateAdvisorStatus(@PathVariable("id")  @Min(1) Long id, @RequestBody Map<String, Boolean> updates)
+            throws OkulProjectException {
+        UserDTO userDTO = userService.updateAdvisorStatus(id, updates);
+        return ResponseEntity.ok(new ResponseWrapper("User Teacher's advisor status updated",userDTO,HttpStatus.OK));
+    }
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
 
 
 

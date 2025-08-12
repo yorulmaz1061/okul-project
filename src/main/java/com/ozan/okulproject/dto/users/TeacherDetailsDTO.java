@@ -14,10 +14,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TeacherDetailsDTO {
 
-    @NotNull(message = "Please enter if the teacher is advisor or not")
     private Boolean isAdvisor;
 
     @JsonIgnore

@@ -86,6 +86,9 @@ public class UserDTO {
 
     private boolean enabled;
 
+    private TeacherDetailsDTO teacherDetails;
+    private StudentDetailsDTO studentDetails;
+
 }
 
 
