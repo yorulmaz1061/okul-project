@@ -1,6 +1,7 @@
 package com.ozan.okulproject.service.impl;
 
 import com.ozan.okulproject.dto.users.*;
+import com.ozan.okulproject.entity.StudentDetails;
 import com.ozan.okulproject.entity.TeacherDetails;
 import com.ozan.okulproject.entity.User;
 import com.ozan.okulproject.enums.Role;
@@ -30,23 +31,40 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
     @Override
     public UserDTO save(UserDTO dto) {
         dto.setEnabled(true);
 
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
-
         User user = mapperUtil.convert(dto, User.class);
-
         user.setPassword(encodedPassword);
 
+        switch (user.getRole()) {
+            case TEACHER -> {
+                user.setStudentDetails(null);
+                if (user.getTeacherDetails() == null) {
+                    TeacherDetails teacherDetails = new TeacherDetails();
+                    teacherDetails.setIsAdvisor(false);
+                    user.setTeacherDetails(teacherDetails);
+                } else if (user.getTeacherDetails().getIsAdvisor() == null) {
+                    user.getTeacherDetails().setIsAdvisor(false);
+                }
+            }
+            case STUDENT -> {
+                user.setTeacherDetails(null);
+                if (user.getStudentDetails() == null) {
+                    StudentDetails studentDetails = new StudentDetails();
+                    user.setStudentDetails(studentDetails);
+                }
+            }
+            default -> {
+                user.setTeacherDetails(null);
+                user.setStudentDetails(null);
+            }
+        }
+
         User savedUser = userRepository.save(user);
-
-        //keycloakService.userCreate(dto);
-
         return mapperUtil.convert(savedUser, UserDTO.class);
-
     }
 
     @Override
@@ -69,17 +87,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO updateUser(Long id, UserDTO dto) {
-        User user = userRepository.findByIdAndIsDeleted(id, false);
-        User convertedUser = mapperUtil.convert(dto, User.class);
-        convertedUser.setId(user.getId());
-        convertedUser.setStudentDetails(user.getStudentDetails());
-        convertedUser.setTeacherDetails(user.getTeacherDetails());
-        userRepository.save(convertedUser);
-        return mapperUtil.convert(convertedUser, UserDTO.class);
-    }
-
-    @Override
     public UserDTO deleteUserById(Long id) {
         User user = userRepository.findByIdAndIsDeleted(id, false);
         user.setIsDeleted(true);
@@ -89,35 +96,50 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO updateAdvisorStatus(Long id, Map<String, Boolean> updates) throws OkulProjectException {
-        Boolean requestedStatus = updates.get("isAdvisor");
-        if (requestedStatus == null) {
-            throw new OkulProjectException("isAdvisor field is required");
-        }
-
+    public UserDTO updateUser(Long id, UserDTO dto) throws OkulProjectException {
         User user = userRepository.findByIdAndIsDeleted(id, false);
         if (user == null) {
             throw new OkulProjectException("User not found with id: " + id);
         }
-        if (!Role.TEACHER.equals(user.getRole())) {
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setEmail(dto.getEmail());
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(dto.getPassword());
+            user.setPassword(encodedPassword);
+        }
+        if (!user.getUsername().equals(dto.getUsername()) || !user.getSsn().equals(dto.getSsn())
+                || !user.getGender().equals(dto.getGender()) || !user.getRole().equals(dto.getRole())
+                || !user.getDateOfBirth().equals(dto.getDateOfBirth()) || !user.getBirthPlace().equals(dto.getBirthPlace())
+                || !user.getMotherName().equals(dto.getMotherName()) || !user.getFatherName().equals(dto.getFatherName())
+                || !user.isEnabled() == dto.isEnabled()) {
+            throw new OkulProjectException("This field/fields cannot be changed");
+        }
+
+        if (user.getRole() == Role.TEACHER && dto.getTeacherDetailsDTO() != null) {
+            Boolean requestedIsAdvisor = dto.getTeacherDetailsDTO().getIsAdvisor();
+            if (requestedIsAdvisor != null) {
+                if (user.getTeacherDetails() == null) {
+                    user.setTeacherDetails(new TeacherDetails());
+                }
+                Boolean currentIsAdvisor = user.getTeacherDetails().getIsAdvisor();
+                if (Objects.equals(currentIsAdvisor, requestedIsAdvisor)) {
+                    if (requestedIsAdvisor) {
+                        throw new OkulProjectException("This teacher is already assigned as an advisor");
+                    } else {
+                        throw new OkulProjectException("This teacher is already unassigned as an advisor");
+                    }
+                }
+                user.getTeacherDetails().setIsAdvisor(requestedIsAdvisor);
+            }
+        } else if (dto.getTeacherDetailsDTO() != null && dto.getTeacherDetailsDTO().getIsAdvisor() != null) {
             throw new OkulProjectException("Advisor status can only be updated for teachers");
         }
-
-        Boolean currentStatus = user.getTeacherDetails().getIsAdvisor();
-
-        if (Objects.equals(currentStatus, requestedStatus)) {
-            if (requestedStatus) {
-                throw new OkulProjectException("This teacher is already assigned as an advisor");
-            } else {
-                throw new OkulProjectException("This teacher is already unassigned as an advisor");
-            }
-        }
-
-        // Update only if different
-        user.getTeacherDetails().setIsAdvisor(requestedStatus);
         User savedUser = userRepository.save(user);
-        return mapperUtil.convert(savedUser, new UserDTO());
+        return mapperUtil.convert(savedUser, UserDTO.class);
     }
+
 
 
 }

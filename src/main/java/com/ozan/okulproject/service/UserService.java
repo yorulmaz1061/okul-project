@@ -18,11 +18,10 @@ public interface UserService {
 
     UserDTO getUserById(Long id);
 
-    UserDTO updateUser(Long id, UserDTO dto);
+    UserDTO updateUser(Long id, UserDTO dto) throws OkulProjectException;
 
     UserDTO deleteUserById(Long id);
 
-    UserDTO updateAdvisorStatus(@Min(1) Long id, Map<String, Boolean> updates) throws OkulProjectException;
 
 }
 

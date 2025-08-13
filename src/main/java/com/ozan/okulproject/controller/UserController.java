@@ -13,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.constraints.Min;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -50,7 +48,7 @@ public class UserController {
     @Operation(summary = "Get Users By Role")
     public ResponseEntity<ResponseWrapper> getUsersByRole(@PathVariable("role") Role role){
         List<UserDTO> userDTOList = userService.getAllByRole(role);
-        return ResponseEntity.ok(new ResponseWrapper("Users are successfully retrieved",userDTOList, HttpStatus.OK));
+        return ResponseEntity.ok(new ResponseWrapper("Users are successfully retrieved",userDTOList, HttpStatus.FOUND));
     }
     @ExecutionTime
     @GetMapping({"id/{id}"})
@@ -58,7 +56,7 @@ public class UserController {
     @Operation(summary = "Get User By Id")
     public ResponseEntity<ResponseWrapper> getUserById(@PathVariable("id") Long id){
         UserDTO userDTO = userService.getUserById(id);
-        return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",userDTO, HttpStatus.OK));
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",userDTO, HttpStatus.FOUND));
     }
     @ExecutionTime
     @DeleteMapping({"id/{id}"})
@@ -73,20 +71,12 @@ public class UserController {
     @PutMapping(value = {"id/{id}"})
     //@RolesAllowed("Admin")
     @Operation(summary = "Update User")
-    public ResponseEntity<ResponseWrapper> updateUser(@PathVariable("id") Long id, @RequestBody UserDTO dto){
+    public ResponseEntity<ResponseWrapper> updateUser(@PathVariable("id") Long id, @RequestBody UserDTO dto) throws OkulProjectException {
         UserDTO userDTO = userService.updateUser(id, dto);
         return ResponseEntity.ok(new ResponseWrapper("User is successfully updated",userDTO,HttpStatus.OK));
 
     }
-    @ExecutionTime
-    @PatchMapping("teacher/{id}/advisor-status")
-    // @RolesAllowed("Admin")
-    @Operation(summary = "Update Advisor Status")
-    public ResponseEntity<ResponseWrapper> updateAdvisorStatus(@PathVariable("id")  @Min(1) Long id, @RequestBody Map<String, Boolean> updates)
-            throws OkulProjectException {
-        UserDTO userDTO = userService.updateAdvisorStatus(id, updates);
-        return ResponseEntity.ok(new ResponseWrapper("User Teacher's advisor status updated",userDTO,HttpStatus.OK));
-    }
+
 
 
 
@@ -95,7 +85,6 @@ public class UserController {
 
 
     
-
 
 
 
