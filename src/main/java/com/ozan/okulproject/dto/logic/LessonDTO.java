@@ -1,9 +1,10 @@
 package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ozan.okulproject.dto.users.TeacherDetailsDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ozan.okulproject.dto.users.UserDTO;
 import lombok.*;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -13,8 +14,8 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class LessonDTO {
-    @JsonIgnore
     private Long id;
 
     @NotNull(message = "Please enter lesson name")
@@ -33,5 +34,20 @@ public class LessonDTO {
     @NotNull(message = "Please enter isCompulsory")
     private Boolean isMandatory;
 
-    private TeacherDetailsDTO teacher;
+    @NotNull(message = "Please select education term id")
+    private EducationTermDTO educationTermId;
+
+    private UserDTO teacherId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean isTeacherAssigned;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String  assignedTeacherInformation;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String termLabel;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String totalStudentsCounts;
 }

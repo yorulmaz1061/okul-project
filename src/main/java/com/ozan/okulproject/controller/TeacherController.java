@@ -1,7 +1,8 @@
 package com.ozan.okulproject.controller;
 
 import com.ozan.okulproject.annotation.ExecutionTime;
-import com.ozan.okulproject.dto.users.TeacherDetailsDTO;
+import com.ozan.okulproject.dto.users.TeacherQuickListDTO;
+import com.ozan.okulproject.dto.users.UserDTO;
 import com.ozan.okulproject.entity.ResponseWrapper;
 import com.ozan.okulproject.service.TeacherService;
 import com.ozan.okulproject.service.UserService;
@@ -29,8 +30,29 @@ public class TeacherController {
     // @RolesAllowed("Admin")
     @Operation(summary = "Get All Teachers Details")
     public ResponseEntity<ResponseWrapper> getAllTeacherDetails(){
-        List<TeacherDetailsDTO> dtoList = teacherService.getAllTeacherDetails();
+        List<UserDTO> dtoList = teacherService.getAllTeacherDetails();
         return ResponseEntity.ok(new ResponseWrapper("All teachers details retrieved", dtoList, HttpStatus.OK));
 
     }
+    @ExecutionTime
+    @GetMapping("/list")
+    // @RolesAllowed("Admin")
+    @Operation(summary = "Get Teacher Quick List")
+    public ResponseEntity<ResponseWrapper> getTeacherQuickList(){
+        List<TeacherQuickListDTO> dtoList = teacherService.getTeacherQuickList();
+        return ResponseEntity.ok(new ResponseWrapper("All teachers quick list retrieved", dtoList, HttpStatus.OK));
+    }
+    @ExecutionTime
+    @GetMapping("/list-advisors")
+    // @RolesAllowed("Admin")
+    @Operation(summary = "Get Advisor Quick List")
+    public ResponseEntity<ResponseWrapper> getAdvisorQuickList(){
+        List<TeacherQuickListDTO> dtoList = teacherService.getAdvisorQuickList();
+        return ResponseEntity.ok(new ResponseWrapper("All advisors quick list retrieved", dtoList, HttpStatus.OK));
+    }
+
+
+
+
+
 }

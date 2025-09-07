@@ -1,6 +1,7 @@
 package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ozan.okulproject.enums.Day;
 import lombok.*;
 
@@ -22,10 +23,11 @@ public class LessonScheduleDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime startTime;
 
-    @NotNull(message = "Please enter start time")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime endTime;
 
+    @NotNull(message = "Please enter lesson id")
     private LessonDTO lesson;
 
 }

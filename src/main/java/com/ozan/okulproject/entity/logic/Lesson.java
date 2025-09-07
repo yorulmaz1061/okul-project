@@ -20,15 +20,16 @@ public class Lesson extends BaseEntity {
     private String lessonCode;
     private Integer creditScore;
     private Boolean isMandatory;
+    private Boolean isTeacherAssigned;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id")
     User teacher;
 
     @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<LessonSchedule> lessonScheduleList = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "education_term_id",nullable = false)
     EducationTerm educationTerm;
 
