@@ -11,7 +11,8 @@ import javax.persistence.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "student_infos")
+@Table(name = "student_infos",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"lesson_id","student_id","is_deleted"}))
 public class StudentLessonInfo extends BaseEntity {
 
     private Integer absence;
@@ -20,12 +21,12 @@ public class StudentLessonInfo extends BaseEntity {
 
     private Double finalExamGrade;
 
-    private Double totalLessonGrade;
+    private Double termGrade;
 
     private String infoNote;
 
     @Enumerated(EnumType.STRING)
-    private Score letterScore;
+    private Score gradeLetterScore;
 
     private Boolean isPassed;
 

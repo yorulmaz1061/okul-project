@@ -1,8 +1,10 @@
 package com.ozan.okulproject.controller;
 
 import com.ozan.okulproject.annotation.ExecutionTime;
+import com.ozan.okulproject.dto.logic.AssignTeacherRequest;
 import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.LessonScheduleDTO;
+import com.ozan.okulproject.dto.logic.StudentLessonInfoDTO;
 import com.ozan.okulproject.entity.ResponseWrapper;
 import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.service.LessonService;
@@ -12,11 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/lesson")
+@RequestMapping("/lessons")
 @Tag(name = "LessonController", description = "Lesson API")
 public class LessonController {
     private final LessonService lessonService;
@@ -63,6 +65,17 @@ public class LessonController {
 
     }
     @ExecutionTime
+    @PutMapping("/{lessonId}/teacher")
+    @Operation(summary = "Assign Teacher To Lesson")
+    public ResponseEntity<ResponseWrapper> assignTeacherToLesson(@PathVariable("lessonId") Long lessonId,
+            @Valid @RequestBody AssignTeacherRequest request) {
+
+        LessonDTO updated = lessonService.assignTeacherToLesson(lessonId, request.teacherId());
+        return ResponseEntity
+                .ok(new ResponseWrapper("Teacher is assigned to lesson", updated, HttpStatus.OK));
+    }
+
+    @ExecutionTime
     @PostMapping("/schedule")
     @Operation(summary = "Create Lesson Schedule")
     public ResponseEntity<ResponseWrapper> createLessonSchedule(@RequestBody LessonScheduleDTO dto){
@@ -76,6 +89,46 @@ public class LessonController {
         LessonScheduleDTO lessonServiceById = lessonService.findLessonScheduleById(id);
         return ResponseEntity.ok(new ResponseWrapper("Lesson Schedule is successfully retrieved",lessonServiceById, HttpStatus.OK));
     }
+    @ExecutionTime
+    @DeleteMapping("/schedule/{lessonId}")
+    @Operation(summary = "Delete Lesson Schedule By Lesson Id")
+    public ResponseEntity<ResponseWrapper> deleteLessonScheduleByLessonId(@PathVariable("lessonId")Long lessonId){
+       LessonScheduleDTO lessonScheduleDTO =  lessonService.deleteLessonScheduleByLessonId(lessonId);
+       return ResponseEntity.ok(new ResponseWrapper("Lesson Schedule is successfully deleted",lessonScheduleDTO, HttpStatus.OK));
+    }
+
+    @ExecutionTime
+    @PostMapping("/{lessonId}/students/{studentId}")
+    @Operation(summary = "Enroll a student to lesson")
+    public ResponseEntity<ResponseWrapper> enrollStudentToLesson(@PathVariable("lessonId") Long lessonId,
+                                                                 @PathVariable("studentId") Long studentId){
+    StudentLessonInfoDTO infoDTO = lessonService.enrollStudent(lessonId,studentId);
+    return ResponseEntity.ok(new ResponseWrapper("Student is successfully enrolled to lesson",infoDTO, HttpStatus.OK));
+    }
+
+    @ExecutionTime
+    @DeleteMapping("/{lessonId}/students/{studentId}")
+    @Operation(summary = "Unenroll a student to lesson")
+    public ResponseEntity<ResponseWrapper>unenrollStudentToLesson(@PathVariable("lessonId") Long lessonId,
+                                                                  @PathVariable("studentId") Long studentId){
+        lessonService.unenrollStudentFromLesson(lessonId,studentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExecutionTime
+    @PutMapping("/{lessonId}/students/{studentId}/grade")
+    @Operation(summary = "Grade a student")
+    public ResponseEntity<ResponseWrapper> updateStudentGrade(
+            @PathVariable Long lessonId,
+            @PathVariable Long studentId,
+            @Valid @RequestBody StudentLessonInfoDTO dto) {
+
+        StudentLessonInfoDTO result = lessonService.gradeStudent(lessonId, studentId, dto);
+        return ResponseEntity.ok(new ResponseWrapper("Student is successfully graded", result, HttpStatus.OK));
+    }
+
+
+
 
 
 }

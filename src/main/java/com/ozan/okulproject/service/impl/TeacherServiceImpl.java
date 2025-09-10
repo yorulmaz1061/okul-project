@@ -3,6 +3,7 @@ package com.ozan.okulproject.service.impl;
 import com.ozan.okulproject.dto.users.TeacherQuickListDTO;
 import com.ozan.okulproject.dto.users.UserDTO;
 import com.ozan.okulproject.entity.User;
+import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.mapper.MapperUtil;
 import com.ozan.okulproject.repository.UserRepository;
 import com.ozan.okulproject.service.TeacherService;
@@ -56,9 +57,12 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     public List<TeacherQuickListDTO> getAdvisorQuickList() {
         List<TeacherQuickListDTO> teacherQuickList = teacherService.getTeacherQuickList();
-        return teacherQuickList.stream().filter(teacher ->teacher.getIsAdvisor()==true)
+        List<TeacherQuickListDTO> list = teacherQuickList.stream().filter(teacher -> teacher.getIsAdvisor() == true)
                 .toList();
-
+        if (list.isEmpty()) {
+            throw new OkulProjectException("There is no advisor in the teacher list");
+        }
+        return list;
     }
 
     @Override

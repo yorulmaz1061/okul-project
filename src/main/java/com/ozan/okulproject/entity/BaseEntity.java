@@ -30,6 +30,7 @@ public abstract class BaseEntity {
     @Column(nullable = false)
     private Long lastUpdateUserId;
 
+    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
     @PrePersist

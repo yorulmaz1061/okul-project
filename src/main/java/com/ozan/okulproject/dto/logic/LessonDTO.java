@@ -1,6 +1,7 @@
 package com.ozan.okulproject.dto.logic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ozan.okulproject.dto.users.UserDTO;
@@ -37,6 +38,11 @@ public class LessonDTO {
     @NotNull(message = "Please select education term id")
     private EducationTermDTO educationTermId;
 
+    @JsonIgnoreProperties({
+            "username","ssn","dateOfBirth","birthPlace","phoneNumber","email",
+            "motherName","fatherName","gender","role","enabled",
+            "teacherDetailsDTO","studentDetailsDTO"
+    })
     private UserDTO teacherId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

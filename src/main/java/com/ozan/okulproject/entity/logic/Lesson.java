@@ -22,6 +22,7 @@ public class Lesson extends BaseEntity {
     private Boolean isMandatory;
     private Boolean isTeacherAssigned;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id")
     User teacher;
@@ -35,5 +36,6 @@ public class Lesson extends BaseEntity {
 
     @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<StudentLessonInfo> studentLessonInfo = new ArrayList<>();
+
 
 }

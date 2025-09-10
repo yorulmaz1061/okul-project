@@ -3,27 +3,24 @@ package com.ozan.okulproject.service.impl;
 import com.ozan.okulproject.dto.logic.EducationTermDTO;
 import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.LessonScheduleDTO;
-import com.ozan.okulproject.dto.users.TeacherQuickListDTO;
+import com.ozan.okulproject.dto.logic.StudentLessonInfoDTO;
+import com.ozan.okulproject.dto.users.StudentDetailsDTO;
 import com.ozan.okulproject.dto.users.UserDTO;
 import com.ozan.okulproject.entity.User;
 import com.ozan.okulproject.entity.logic.EducationTerm;
 import com.ozan.okulproject.entity.logic.Lesson;
 import com.ozan.okulproject.entity.logic.LessonSchedule;
+import com.ozan.okulproject.entity.logic.StudentLessonInfo;
 import com.ozan.okulproject.enums.Day;
 import com.ozan.okulproject.enums.Role;
 import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.mapper.MapperUtil;
-import com.ozan.okulproject.repository.EducationTermRepository;
-import com.ozan.okulproject.repository.LessonRepository;
-import com.ozan.okulproject.repository.LessonScheduleRepository;
-import com.ozan.okulproject.repository.UserRepository;
+import com.ozan.okulproject.repository.*;
 import com.ozan.okulproject.service.LessonService;
-import com.ozan.okulproject.service.TeacherService;
 import com.ozan.okulproject.service.UserService;
-import org.hibernate.LazyInitializationException;
+import com.ozan.okulproject.service.helper.GradeCalculator;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.time.LocalTime;
 import java.util.*;
@@ -37,16 +34,20 @@ public class LessonServiceImpl implements LessonService {
     private final UserRepository userRepository;
     private final LessonScheduleRepository lessonScheduleRepository;
     private final LessonService lessonService;
+    private final StudentLessonInfoRepository studentLessonInfoRepository;
+    private final GradeCalculator gradeCalculator;
 
-    public LessonServiceImpl(MapperUtil mapperUtil, LessonRepository lessonRepository, EducationTermRepository educationTermRepository, UserRepository userRepository, LessonScheduleRepository lessonScheduleRepository, @Lazy LessonService lessonService) {
+
+    public LessonServiceImpl(MapperUtil mapperUtil, LessonRepository lessonRepository, EducationTermRepository educationTermRepository, UserRepository userRepository, LessonScheduleRepository lessonScheduleRepository, @Lazy LessonService lessonService, StudentLessonInfoRepository studentLessonInfoRepository, GradeCalculator gradeCalculator) {
         this.mapperUtil = mapperUtil;
         this.lessonRepository = lessonRepository;
         this.educationTermRepository = educationTermRepository;
         this.userRepository = userRepository;
         this.lessonScheduleRepository = lessonScheduleRepository;
         this.lessonService = lessonService;
+        this.studentLessonInfoRepository = studentLessonInfoRepository;
+        this.gradeCalculator = gradeCalculator;
     }
-
 
     @Override
     public LessonDTO findById(Long id) throws OkulProjectException {
@@ -57,20 +58,28 @@ public class LessonServiceImpl implements LessonService {
         LessonDTO dto = mapperUtil.convert(lesson, LessonDTO.class);
         if (lesson.getEducationTerm() != null) {
             EducationTerm term = lesson.getEducationTerm();
-            dto.setEducationTermId(mapperUtil.convert(term, EducationTermDTO.class));
             dto.setTermLabel(term.getTermLabel());
-            EducationTermDTO edDto = dto.getEducationTermId();
-            if (term.getStartDate() != null) edDto.setStartDate(term.getStartDate());
-            if (term.getEndDate() != null) edDto.setEndDate(term.getEndDate());
-            if (term.getLastRegistrationDate() != null) edDto.setLastRegistrationDate(term.getLastRegistrationDate());
+            EducationTermDTO etDto = new EducationTermDTO();
+            etDto.setId(term.getId());
+            etDto.setStartDate(term.getStartDate());
+            etDto.setEndDate(term.getEndDate());
+            etDto.setLastRegistrationDate(term.getLastRegistrationDate());
+            etDto.setTermLabel(term.getTermLabel());
+            dto.setEducationTermId(etDto);
         }
         if (lesson.getTeacher() != null) {
-            User teacher = lesson.getTeacher();
-            String teacherInfo = teacher.getId() + " - " + teacher.getFirstName() + " - " + teacher.getLastName();
-            dto.setAssignedTeacherInformation(teacherInfo);
+            User t = lesson.getTeacher();
+            UserDTO brief = new UserDTO();
+            brief.setId(t.getId());
+            brief.setFirstName(t.getFirstName());
+            brief.setLastName(t.getLastName());
+            dto.setTeacherId(brief);
             dto.setIsTeacherAssigned(true);
+            dto.setAssignedTeacherInformation(t.getId() + " - " + t.getFirstName() + " - " + t.getLastName());
         } else {
+            dto.setTeacherId(null);
             dto.setIsTeacherAssigned(false);
+            dto.setAssignedTeacherInformation(null);
         }
         return dto;
     }
@@ -91,11 +100,17 @@ public class LessonServiceImpl implements LessonService {
             }
             if (lesson.getTeacher() != null) {
                 User teacher = lesson.getTeacher();
-                String teacherInfo = teacher.getId() + " - " + teacher.getFirstName() + " - " + teacher.getLastName();
-                dto.setAssignedTeacherInformation(teacherInfo);
+                UserDTO brief = new UserDTO();
+                brief.setId(teacher.getId());
+                brief.setFirstName(teacher.getFirstName());
+                brief.setLastName(teacher.getLastName());
+                dto.setTeacherId(brief);
                 dto.setIsTeacherAssigned(true);
+                dto.setAssignedTeacherInformation(teacher.getId() + " - " + teacher.getFirstName() + " - " + teacher.getLastName());
             } else {
+                dto.setTeacherId(null);
                 dto.setIsTeacherAssigned(false);
+                dto.setAssignedTeacherInformation(null);
             }
             return dto;
         }).collect(Collectors.toList());
@@ -107,7 +122,6 @@ public class LessonServiceImpl implements LessonService {
         lesson.setIsDeleted(true);
         lessonRepository.save(lesson);
         return mapperUtil.convert(lesson, LessonDTO.class);
-
     }
 
     @Override
@@ -154,10 +168,8 @@ public class LessonServiceImpl implements LessonService {
         res.setTotalStudentsCounts(
                 saved.getStudentLessonInfo() == null ? "0" : String.valueOf(saved.getStudentLessonInfo().size())
         );
-
         return res;
     }
-
 
     @Override
     public LessonDTO updateLesson(Long id, LessonDTO dto) {
@@ -217,7 +229,6 @@ public class LessonServiceImpl implements LessonService {
         Lesson lessonRef = lessonRepository.getReferenceById(dto.getLesson().getId());
         List<LessonSchedule> sameLessonSchedules =
                 lessonScheduleRepository.findAllByLesson_IdAndIsDeletedFalse(lessonRef.getId());
-
         boolean lessonOverlap = sameLessonSchedules.stream().anyMatch(existing ->
                 hasDayIntersection(existing.getDayList(), dto.getDayList())
                         && overlaps(start, end, existing.getStartTime(), existing.getEndTime())
@@ -250,29 +261,77 @@ public class LessonServiceImpl implements LessonService {
         ls.setEndTime(end);
         lessonScheduleRepository.save(ls);
     }
+
     @Override
     public LessonScheduleDTO findLessonScheduleById(Long id) {
         LessonSchedule ls = lessonScheduleRepository.findById(id)
                 .orElseThrow(() -> new OkulProjectException("Lesson schedule not found with id: " + id));
-        LessonScheduleDTO dto = mapperUtil.convert(ls, LessonScheduleDTO.class);
-        if (ls.getLesson() != null) {
-            if (dto.getLesson() == null) dto.setLesson(new LessonDTO());
-            dto.getLesson().setId(ls.getLesson().getId());
-            if (ls.getLesson().getEducationTerm() != null) {
-                EducationTerm term = ls.getLesson().getEducationTerm();
-                if (dto.getLesson().getEducationTermId() == null) {
-                    dto.getLesson().setEducationTermId(new EducationTermDTO());
-                }
-                EducationTermDTO etDto = dto.getLesson().getEducationTermId();
+        LessonScheduleDTO dto = new LessonScheduleDTO();
+        dto.setDayList(ls.getDayList());
+        dto.setStartTime(ls.getStartTime());
+        dto.setEndTime(ls.getEndTime());
+        Lesson lesson = ls.getLesson();
+        if (lesson != null) {
+            LessonDTO lDto = new LessonDTO();
+            lDto.setId(lesson.getId());
+            EducationTerm term = lesson.getEducationTerm();
+            if (term != null) {
+                lDto.setTermLabel(term.getTermLabel());
+                EducationTermDTO etDto = new EducationTermDTO();
                 etDto.setId(term.getId());
-                etDto.setTermLabel(term.getTermLabel());
-                dto.getLesson().setTermLabel(term.getTermLabel());
+                 etDto.setTermLabel(term.getTermLabel());
+                lDto.setEducationTermId(etDto);
             }
+            dto.setLesson(lDto);
         }
         return dto;
     }
 
-
+    @Override
+    @Transactional
+    public LessonDTO assignTeacherToLesson(Long lessonId, Long teacherId) {
+        Lesson lesson = lessonRepository.findByIsDeletedAndId(false, lessonId);
+        if (lesson == null) {
+            throw new OkulProjectException("Lesson not found with id: " + lessonId);
+        }
+        User teacher = userRepository.findById(teacherId)
+                .orElseThrow(() -> new OkulProjectException("Teacher not found with id: " + teacherId));
+        lesson.setTeacher(teacher);
+        lesson.setIsTeacherAssigned(true);
+        Lesson saved = lessonRepository.save(lesson);
+        LessonDTO dto = mapperUtil.convert(saved, LessonDTO.class);
+        if (saved.getTeacher() != null) {
+            User t = saved.getTeacher();
+            UserDTO brief = new UserDTO();
+            brief.setId(t.getId());
+            brief.setFirstName(t.getFirstName());
+            brief.setLastName(t.getLastName());
+            dto.setTeacherId(brief);
+            dto.setIsTeacherAssigned(true);
+            dto.setAssignedTeacherInformation(
+                    t.getId() + " - " + t.getFirstName() + " - " + t.getLastName()
+            );
+        } else {
+            dto.setIsTeacherAssigned(false);
+            dto.setTeacherId(null);
+            dto.setAssignedTeacherInformation(null);
+        }
+        if (saved.getEducationTerm() != null) {
+            dto.setTermLabel(saved.getEducationTerm().getTermLabel());
+            EducationTermDTO etDto = new EducationTermDTO();
+            etDto.setId(saved.getEducationTerm().getId());
+            etDto.setTermLabel(saved.getEducationTerm().getTermLabel());
+            dto.setEducationTermId(etDto);
+            if (dto.getEducationTermId() == null) {
+                dto.setEducationTermId(new EducationTermDTO());
+            }
+            dto.getEducationTermId().setId(saved.getEducationTerm().getId());
+        }
+        dto.setTotalStudentsCounts(String.valueOf(
+                saved.getStudentLessonInfo() == null ? 0 : saved.getStudentLessonInfo().size()
+        ));
+        return dto;
+    }
 
     private boolean overlaps(LocalTime aStart, LocalTime aEnd, LocalTime bStart, LocalTime bEnd) {
         return aStart.isBefore(bEnd) && aEnd.isAfter(bStart);
@@ -285,10 +344,123 @@ public class LessonServiceImpl implements LessonService {
         for (Day d : other) if (set.contains(d)) return true;
         return false;
     }
+    @Override
+    @Transactional
+    public LessonScheduleDTO deleteLessonScheduleByLessonId(Long lessonId) {
+        Lesson lesson = lessonRepository.findByIsDeletedAndId(false, lessonId);
+        if (lesson == null) {
+            throw new OkulProjectException("Lesson not found with id: " + lessonId);
+        }
+        List<LessonSchedule> schedules =
+                lessonScheduleRepository.findAllByLesson_IdAndIsDeletedFalse(lessonId);
+        if (schedules.isEmpty()) {
+            throw new OkulProjectException("No lesson schedule found for lesson id: " + lessonId);
+        }
+        schedules.forEach(s -> s.setIsDeleted(true));
+        lessonScheduleRepository.saveAll(schedules);
+        LessonSchedule first = schedules.get(0);
+        LessonScheduleDTO dto = new LessonScheduleDTO();
+        dto.setDayList(first.getDayList());
+        dto.setStartTime(first.getStartTime());
+        dto.setEndTime(first.getEndTime());
+        LessonDTO lDto = new LessonDTO();
+        lDto.setId(lesson.getId());
+        if (lesson.getEducationTerm() != null) {
+            EducationTerm term = lesson.getEducationTerm();
+            lDto.setTermLabel(term.getTermLabel());
+            EducationTermDTO et = new EducationTermDTO();
+            et.setId(term.getId());
+            lDto.setEducationTermId(et);
+        }
+        dto.setLesson(lDto);
+        return dto;
+    }
 
+    @Override
+    @Transactional
+    public StudentLessonInfoDTO enrollStudent(Long lessonId, Long studentId) {
+        Lesson lesson = lessonRepository.findByIsDeletedAndId(false, lessonId);
+        if (lesson == null) throw new OkulProjectException("Lesson not found with id: " + lessonId);
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new OkulProjectException("Student not found with id: " + studentId));
+        if (student.getRole() != Role.STUDENT){
+            throw new OkulProjectException("Only students can enroll to this lesson.");
+        }
+        if (!student.isEnabled()) throw new OkulProjectException("Student is not enabled.");
+        boolean exists = studentLessonInfoRepository
+                .existsByLesson_IdAndStudent_IdAndIsDeletedFalse(lessonId, studentId);
+        if (exists) throw new OkulProjectException("Student already enrolled to this lesson.");
+        StudentLessonInfo sli = new StudentLessonInfo();
+        sli.setLesson(lessonRepository.getReferenceById(lessonId));
+        sli.setStudent(userRepository.getReferenceById(studentId));
+        studentLessonInfoRepository.save(sli);
 
+        StudentLessonInfoDTO dto = new StudentLessonInfoDTO();
+        UserDTO s = new UserDTO(); s.setId(student.getId()); s.setFirstName(student.getFirstName()); s.setLastName(student.getLastName());
+        dto.setStudent(s);
+        LessonDTO l = new LessonDTO(); l.setId(lesson.getId());
+        if (lesson.getEducationTerm()!=null) {
+            EducationTermDTO et = new EducationTermDTO(); et.setId(lesson.getEducationTerm().getId()); et.setTermLabel(lesson.getEducationTerm().getTermLabel());
+            l.setEducationTermId(et); l.setTermLabel(et.getTermLabel());
+        }
 
+        long cnt = studentLessonInfoRepository.countByLesson_IdAndIsDeletedFalse(lessonId);
+        l.setTotalStudentsCounts(String.valueOf(cnt));
 
+        dto.setLesson(l);
+        return dto;
+    }
+
+    @Override
+    public void unenrollStudentFromLesson(Long lessonId, Long studentId) {
+        Lesson lesson = lessonRepository.findByIsDeletedAndId(false, lessonId);
+        if (lesson == null) throw new OkulProjectException("Lesson not found with id: " + lessonId);
+        StudentLessonInfo sli = studentLessonInfoRepository.findByLesson_IdAndStudent_IdAndIsDeletedFalse(lessonId,studentId)
+                .orElseThrow(()->new OkulProjectException("Enrollment not found for student "+ studentId));
+        sli.setIsDeleted(true);
+        studentLessonInfoRepository.save(sli);
+    }
+
+    @Override
+    public StudentLessonInfoDTO gradeStudent(Long lessonId, Long studentId, StudentLessonInfoDTO dto) {
+        User student = userRepository.findByIdAndIsDeleted(studentId, false);
+        if (student == null) throw new OkulProjectException("Student not found with id: " + studentId);
+        Lesson lesson = lessonRepository.findByIsDeletedAndId(false, lessonId);
+        if (lesson == null) throw new OkulProjectException("Lesson not found with id: " + lessonId);
+        StudentLessonInfo sli = studentLessonInfoRepository
+                .findByLesson_IdAndStudent_IdAndIsDeletedFalse(lessonId, studentId)
+                .orElseThrow(() -> new OkulProjectException("Enrollment not found for this lesson/student."));
+        sli.setAbsence(dto.getAbsence());
+        sli.setMidtermExamGrade(dto.getMidtermExamGrade());
+        sli.setFinalExamGrade(dto.getFinalExamGrade());
+        sli.setInfoNote(dto.getInfoNote());
+        gradeCalculator.apply(sli);
+        studentLessonInfoRepository.save(sli);
+        StudentLessonInfoDTO out = new StudentLessonInfoDTO();
+        out.setAbsence(sli.getAbsence());
+        out.setMidtermExamGrade(sli.getMidtermExamGrade());
+        out.setFinalExamGrade(sli.getFinalExamGrade());
+        out.setTermGrade(sli.getTermGrade());
+        out.setInfoNote(sli.getInfoNote());
+        out.setGradeLetterScore(sli.getGradeLetterScore());
+        out.setIsPassed(sli.getIsPassed());
+        UserDTO s = new UserDTO();
+        s.setId(student.getId());
+        s.setFirstName(student.getFirstName());
+        s.setLastName(student.getLastName());
+        out.setStudent(s);
+        LessonDTO l = new LessonDTO();
+        l.setId(lesson.getId());
+        if (lesson.getEducationTerm() != null) {
+            EducationTermDTO et = new EducationTermDTO();
+            et.setId(lesson.getEducationTerm().getId());
+            et.setTermLabel(lesson.getEducationTerm().getTermLabel());
+            l.setEducationTermId(et);
+            l.setTermLabel(et.getTermLabel());
+        }
+        out.setLesson(l);
+        return out;
+    }
 
 }
 

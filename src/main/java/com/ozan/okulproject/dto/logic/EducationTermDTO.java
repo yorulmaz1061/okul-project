@@ -16,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EducationTermDTO {
 
     private Long id;
@@ -32,11 +33,6 @@ public class EducationTermDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate lastRegistrationDate;
 
-    /**
-     * Generated automatically from startDate.
-     * Example: "2025-Spring Semester"
-     * This field is READ-ONLY for clients.
-     */
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String termLabel;
 

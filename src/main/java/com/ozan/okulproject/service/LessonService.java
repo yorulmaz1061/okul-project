@@ -2,9 +2,12 @@ package com.ozan.okulproject.service;
 
 import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.LessonScheduleDTO;
+import com.ozan.okulproject.dto.logic.StudentLessonInfoDTO;
 import com.ozan.okulproject.entity.logic.LessonSchedule;
 import com.ozan.okulproject.exception.OkulProjectException;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 public interface LessonService {
@@ -22,5 +25,15 @@ public interface LessonService {
     void saveLessonSchedule(LessonScheduleDTO dto);
 
     LessonScheduleDTO findLessonScheduleById(Long id);
+
+    LessonDTO assignTeacherToLesson(Long lessonId, Long teacherId);
+
+    LessonScheduleDTO deleteLessonScheduleByLessonId(Long lessonId);
+
+    StudentLessonInfoDTO enrollStudent(Long lessonId, Long studentId);
+
+    void unenrollStudentFromLesson(Long lessonId, Long studentId);
+
+    StudentLessonInfoDTO gradeStudent(Long lessonId, Long studentId, StudentLessonInfoDTO dto);
 
 }

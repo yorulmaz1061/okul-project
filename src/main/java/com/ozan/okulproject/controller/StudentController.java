@@ -26,7 +26,6 @@ public class StudentController {
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
-
     @ExecutionTime
     @GetMapping
     // @RolesAllowed("Admin")
@@ -44,5 +43,7 @@ public class StudentController {
         List<StudentQuickListDTO> dtoList = studentService.getStudentQuickList();
         return ResponseEntity.ok(new ResponseWrapper("All students quick list retrieved", dtoList, HttpStatus.OK));
     }
+
+
 
 }
