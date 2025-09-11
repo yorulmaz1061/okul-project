@@ -1,6 +1,7 @@
 package com.ozan.okulproject.controller;
 
 import com.ozan.okulproject.annotation.ExecutionTime;
+import com.ozan.okulproject.dto.users.TeacherDetailsDTO;
 import com.ozan.okulproject.dto.users.TeacherQuickListDTO;
 import com.ozan.okulproject.dto.users.UserDTO;
 import com.ozan.okulproject.entity.ResponseWrapper;
@@ -34,6 +35,7 @@ public class TeacherController {
         return ResponseEntity.ok(new ResponseWrapper("All teachers details retrieved", dtoList, HttpStatus.OK));
 
     }
+
     @ExecutionTime
     @GetMapping("/list")
     // @RolesAllowed("Admin")
@@ -42,6 +44,7 @@ public class TeacherController {
         List<TeacherQuickListDTO> dtoList = teacherService.getTeacherQuickList();
         return ResponseEntity.ok(new ResponseWrapper("All teachers quick list retrieved", dtoList, HttpStatus.OK));
     }
+
     @ExecutionTime
     @GetMapping("/list-advisors")
     // @RolesAllowed("Admin")
@@ -50,6 +53,22 @@ public class TeacherController {
         List<TeacherQuickListDTO> dtoList = teacherService.getAdvisorQuickList();
         return ResponseEntity.ok(new ResponseWrapper("All advisors quick list retrieved", dtoList, HttpStatus.OK));
     }
+
+    @ExecutionTime
+    @PutMapping("/{teacherId}/assign-advisor")
+    public ResponseEntity<ResponseWrapper> assignAdvisor(@PathVariable("teacherId") Long teacherId){
+        TeacherDetailsDTO dto = teacherService.assignAdvisor(teacherId);
+        return ResponseEntity.ok(new ResponseWrapper("Advisor is successfully assigned",dto, HttpStatus.OK));
+    }
+
+    @ExecutionTime
+    @PutMapping("/{teacherId}/unassign-advisor")
+    public ResponseEntity<ResponseWrapper> unassignAdvisor(@PathVariable("teacherId") Long teacherId){
+        TeacherDetailsDTO dto = teacherService.unassignAdvisor(teacherId);
+        return ResponseEntity.ok(new ResponseWrapper("Advisor is successfully unassigned",dto, HttpStatus.OK));
+    }
+
+
 
 
 

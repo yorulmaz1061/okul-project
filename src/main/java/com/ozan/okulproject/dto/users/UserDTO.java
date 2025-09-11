@@ -1,6 +1,8 @@
 package com.ozan.okulproject.dto.users;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ozan.okulproject.enums.Gender;
 import com.ozan.okulproject.enums.Role;
@@ -14,6 +16,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class UserDTO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -31,7 +34,7 @@ public class UserDTO {
     private String ssn;
 
     @NotNull(message = "Please enter first name.")
-    @Size(min = 4, max = 16, message = "Your name should be at least 4 characters.")
+    @Size(min = 2, max = 16, message = "Your name should be at least 4 characters.")
     @Pattern(regexp = "\\A(?!\\s*\\Z).+", message = "Your name must consist of the characters.")
     private String firstName;
 
@@ -84,6 +87,7 @@ public class UserDTO {
     @NotNull(message = "Please enter user role")
     private Role role;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private boolean enabled;
 
     private TeacherDetailsDTO teacherDetailsDTO;

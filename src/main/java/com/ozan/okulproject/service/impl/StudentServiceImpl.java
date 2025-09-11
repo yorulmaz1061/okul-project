@@ -6,8 +6,6 @@ import com.ozan.okulproject.entity.User;
 import com.ozan.okulproject.mapper.MapperUtil;
 import com.ozan.okulproject.repository.UserRepository;
 import com.ozan.okulproject.service.StudentService;
-import com.ozan.okulproject.service.TeacherService;
-import com.ozan.okulproject.service.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -16,16 +14,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class StudentServiceImpl implements StudentService {
-    private final UserService userService;
-    private final TeacherService teacherService;
     private final MapperUtil mapperUtil;
     private final UserRepository userRepository;
     private final StudentService studentService;
 
     //private final KeycloakService keycloakService;
-    public StudentServiceImpl(UserService userService, TeacherService teacherService, MapperUtil mapperUtil, UserRepository userRepository, @Lazy StudentService studentService) {
-        this.userService = userService;
-        this.teacherService = teacherService;
+    public StudentServiceImpl(MapperUtil mapperUtil, UserRepository userRepository, @Lazy StudentService studentService) {
         this.mapperUtil = mapperUtil;
         this.userRepository = userRepository;
         this.studentService = studentService;

@@ -38,29 +38,29 @@ public class UserServiceImpl implements UserService {
         User user = mapperUtil.convert(dto, User.class);
         user.setPassword(encodedPassword);
 
-        switch (user.getRole()) {
-            case TEACHER -> {
-                user.setStudentDetails(null);
-                if (user.getTeacherDetails() == null) {
-                    TeacherDetails teacherDetails = new TeacherDetails();
-                    teacherDetails.setIsAdvisor(false);
-                    user.setTeacherDetails(teacherDetails);
-                } else if (user.getTeacherDetails().getIsAdvisor() == null) {
-                    user.getTeacherDetails().setIsAdvisor(false);
-                }
+        if (Objects.requireNonNull(user.getRole()) == Role.TEACHER) {
+            user.setStudentDetails(null);
+            if (user.getTeacherDetails() == null) {
+                TeacherDetails teacherDetails = new TeacherDetails();
+                teacherDetails.setIsAdvisor(false);
+                user.setTeacherDetails(teacherDetails);
+            } else if (user.getTeacherDetails().getIsAdvisor() == null) {
+                user.getTeacherDetails().setIsAdvisor(false);
             }
-            case STUDENT -> {
-                user.setTeacherDetails(null);
-                if (user.getStudentDetails() == null) {
-                    StudentDetails studentDetails = new StudentDetails();
-                    user.setStudentDetails(studentDetails);
-                }
-            }
-            default -> {
-                user.setTeacherDetails(null);
-                user.setStudentDetails(null);
-            }
+        } else {
+            user.setTeacherDetails(null);
+            user.setStudentDetails(null);
         }
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new OkulProjectException("Email already exists: " + dto.getEmail());
+        }
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new OkulProjectException("Username already exists: " + dto.getUsername());
+        }
+        if (userRepository.existsBySsn(dto.getSsn())) {
+            throw new OkulProjectException("SSN already exists: " + dto.getSsn());
+        }
+
 
         User savedUser = userRepository.save(user);
         return mapperUtil.convert(savedUser, UserDTO.class);

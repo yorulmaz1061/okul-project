@@ -16,12 +16,10 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TeacherDetailsDTO {
-
+    private Long id;
     private Boolean isAdvisor;
-
     @JsonIgnore
     private List<LessonDTO> lessons;
-
     @JsonIgnore
     private List<MeetDTO> meetsForTeacher;
 

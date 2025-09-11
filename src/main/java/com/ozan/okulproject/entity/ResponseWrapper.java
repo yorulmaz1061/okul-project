@@ -11,22 +11,30 @@ import org.springframework.http.HttpStatus;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseWrapper {
-
     private boolean success;
     private String message;
-    private Integer code;
     private Object data;
+    private int code;
 
-    public ResponseWrapper(String message, Object data, HttpStatus httpStatus) {
-        this.success = true;
+    public ResponseWrapper(String message, Object data, HttpStatus status) {
+        this.success = status.is2xxSuccessful();
         this.message = message;
-        this.code = httpStatus.value();
         this.data = data;
+        this.code = status.value();
+    }
+    public ResponseWrapper(String msg, HttpStatus status) {
+        this.success = status.is2xxSuccessful();
+        this.message = msg;
+        this.code = status.value();
+    }
+    public static ResponseWrapper success(String msg, Object data, HttpStatus status) {
+        return new ResponseWrapper(msg, data, status);
+    }
+    public static ResponseWrapper success(String msg, HttpStatus status) {
+        return new ResponseWrapper(msg, status);
     }
 
-    public ResponseWrapper(String message, HttpStatus httpStatus) {
-        this.message = message;
-        this.code = httpStatus.value();
-        this.success = true;
+    public static ResponseWrapper failure(String msg, HttpStatus status) {
+        return new ResponseWrapper(msg, status);
     }
 }

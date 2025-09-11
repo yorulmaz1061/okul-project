@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -28,9 +29,9 @@ public class UserController {
     @PostMapping
    // @RolesAllowed("Admin")
     @Operation(summary = "Create User")
-    public ResponseEntity<ResponseWrapper> createUser(@RequestBody UserDTO dto){
-        userService.save(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseWrapper("User is successfully created",HttpStatus.CREATED));
+    public ResponseEntity<ResponseWrapper> createUser(@RequestBody @Valid UserDTO dto){
+        UserDTO saved = userService.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseWrapper("User is successfully created",saved, HttpStatus.CREATED));
     }
 
     @ExecutionTime

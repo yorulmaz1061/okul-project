@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.HandlerMethod;
@@ -19,6 +20,25 @@ import java.util.Optional;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(OkulProjectException.class)
+    public ResponseEntity<ResponseWrapper> handleOkul(OkulProjectException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ResponseWrapper.failure(ex.getMessage(), HttpStatus.CONFLICT));
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ResponseWrapper> handleValidation(MethodArgumentNotValidException ex) {
+        String msg = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .findFirst().orElse("Validation error");
+        return ResponseEntity.badRequest()
+                .body(new ResponseWrapper(msg, null, HttpStatus.BAD_REQUEST));
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ResponseWrapper> handleOther(Exception ex) {
+        // log ex
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ResponseWrapper(ex.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+  /* @ExceptionHandler(OkulProjectException.class)
     public ResponseEntity<ResponseWrapper> serviceException(OkulProjectException se){
         String message = se.getMessage();
         return new ResponseEntity<>(ResponseWrapper.builder().success(false).code(HttpStatus.CONFLICT.value()).message(message).build(),HttpStatus.CONFLICT);
@@ -55,5 +75,5 @@ public class GlobalExceptionHandler {
             return Optional.of(defaultExceptionMessageDto);
         }
         return Optional.empty();
-    }
+    }*/
 }

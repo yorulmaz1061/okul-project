@@ -15,4 +15,8 @@ public interface TeacherService {
 
     List<String> getLessonUnassignedTeachers();
 
+    TeacherDetailsDTO assignAdvisor(Long teacherId);
+
+    TeacherDetailsDTO unassignAdvisor(Long teacherId);
+
 }

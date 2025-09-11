@@ -16,17 +16,12 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class StudentDetailsDTO{
-
+    private Long id;
     private Integer totalAbsence;
-
     private Double totalMidtermExamsAverageGrade;
-
     private Double totalFinalExamsAverageGrade;
-
     private Double totalTermAverageGrade;
-
     private Score totalTermLetterScore;
-
     List<StudentLessonInfoDTO> studentLessonInfos;
 
     @JsonIgnore

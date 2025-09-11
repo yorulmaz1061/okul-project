@@ -36,16 +36,10 @@ public class MeetDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime startTime;
 
-    @NotNull(message = "Please enter meeting end time")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    private LocalTime endTime;
-
     @NotNull(message = "Please select student/students")
     private List<StudentDetailsDTO> studentDTOList;
 
     @NotNull(message = "Please select advisor teacher")
     private TeacherDetailsDTO teacher;
-
-
 
 }
