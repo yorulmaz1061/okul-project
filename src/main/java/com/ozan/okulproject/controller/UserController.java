@@ -49,7 +49,7 @@ public class UserController {
     @Operation(summary = "Get Users By Role")
     public ResponseEntity<ResponseWrapper> getUsersByRole(@PathVariable("role") Role role){
         List<UserDTO> userDTOList = userService.getAllByRole(role);
-        return ResponseEntity.ok(new ResponseWrapper("Users are successfully retrieved",userDTOList, HttpStatus.FOUND));
+        return ResponseEntity.ok(new ResponseWrapper("Users are successfully retrieved",userDTOList, HttpStatus.OK));
     }
     @ExecutionTime
     @GetMapping({"id/{id}"})
@@ -57,7 +57,7 @@ public class UserController {
     @Operation(summary = "Get User By Id")
     public ResponseEntity<ResponseWrapper> getUserById(@PathVariable("id") Long id){
         UserDTO userDTO = userService.getUserById(id);
-        return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",userDTO, HttpStatus.FOUND));
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",userDTO, HttpStatus.OK));
     }
     @ExecutionTime
     @DeleteMapping({"id/{id}"})
@@ -68,14 +68,23 @@ public class UserController {
         return ResponseEntity.ok(new ResponseWrapper("User is successfully deleted",userDTO, HttpStatus.OK));
 
     }
+
     @ExecutionTime
     @PutMapping(value = {"id/{id}"})
     //@RolesAllowed("Admin")
     @Operation(summary = "Update User")
-    public ResponseEntity<ResponseWrapper> updateUser(@PathVariable("id") Long id, @RequestBody UserDTO dto) throws OkulProjectException {
+    public ResponseEntity<ResponseWrapper> updateUser(@PathVariable("id") Long id, @RequestBody @Valid UserDTO dto) throws OkulProjectException {
         UserDTO userDTO = userService.updateUser(id, dto);
-        return ResponseEntity.ok(new ResponseWrapper("User is successfully updated",userDTO,HttpStatus.OK));
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully updated", userDTO, HttpStatus.OK));
+    }
 
+    @ExecutionTime
+    @GetMapping("/username/{username}")
+    //@RolesAllowed("Admin")
+    @Operation(summary = "Get user by username")
+    public ResponseEntity<ResponseWrapper> getUserByUsername(@PathVariable("username") String username){
+        UserDTO dto = userService.getUserByUsername(username);
+        return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",dto, HttpStatus.OK));
     }
 
 

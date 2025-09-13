@@ -1,18 +1,17 @@
 package com.ozan.okulproject.service.impl;
 
 import com.ozan.okulproject.dto.users.*;
-import com.ozan.okulproject.entity.StudentDetails;
 import com.ozan.okulproject.entity.TeacherDetails;
 import com.ozan.okulproject.entity.User;
 import com.ozan.okulproject.enums.Role;
 import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.mapper.MapperUtil;
 import com.ozan.okulproject.repository.UserRepository;
-//import com.ozan.okulproject.service.KeycloakService;
 import com.ozan.okulproject.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -60,8 +59,6 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsBySsn(dto.getSsn())) {
             throw new OkulProjectException("SSN already exists: " + dto.getSsn());
         }
-
-
         User savedUser = userRepository.save(user);
         return mapperUtil.convert(savedUser, UserDTO.class);
     }
@@ -70,7 +67,6 @@ public class UserServiceImpl implements UserService {
     public List<UserDTO> listAllUsers() {
         List<User> userList = userRepository.findAllByIsDeletedOrderByFirstName(false);
         return userList.stream().map(user -> mapperUtil.convert(user, UserDTO.class)).collect(Collectors.toList());
-
     }
 
     @Override
@@ -82,12 +78,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUserById(Long id) {
         User user = userRepository.findByIdAndIsDeleted(id, false);
+        if (user == null) {throw new OkulProjectException("User not found with id: " + id);}
         return mapperUtil.convert(user, UserDTO.class);
     }
 
     @Override
     public UserDTO deleteUserById(Long id) {
         User user = userRepository.findByIdAndIsDeleted(id, false);
+        if (user == null) {throw new OkulProjectException("User not found with id: " + id);}
         user.setIsDeleted(true);
         user.setEnabled(false);
         userRepository.save(user);
@@ -95,49 +93,82 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO updateUser(Long id, UserDTO dto) throws OkulProjectException {
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepository.getUsersByUsername(username);
+        if (user == null) throw new OkulProjectException("User not found with username: " + username);
+        return mapperUtil.convert(user, UserDTO.class);
+    }
+
+    @Override
+    @Transactional
+    public UserDTO updateUser(Long id, UserDTO dto) {
         User user = userRepository.findByIdAndIsDeleted(id, false);
         if (user == null) {
             throw new OkulProjectException("User not found with id: " + id);
         }
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(dto.getPassword());
-            user.setPassword(encodedPassword);
+        // ---------- IMMUTABLE GUARD ----------
+        if (dto.getSsn() != null && !dto.getSsn().equals(user.getSsn())) {
+            throw new OkulProjectException("SSN cannot be changed");
         }
-        if (!user.getUsername().equals(dto.getUsername()) || !user.getSsn().equals(dto.getSsn())
-                || !user.getGender().equals(dto.getGender()) || !user.getRole().equals(dto.getRole())
-                || !user.getDateOfBirth().equals(dto.getDateOfBirth()) || !user.getBirthPlace().equals(dto.getBirthPlace())
-                || !user.getMotherName().equals(dto.getMotherName()) || !user.getFatherName().equals(dto.getFatherName())
-                || !user.isEnabled() == dto.isEnabled()) {
-            throw new OkulProjectException("This field/fields cannot be changed");
+        if (dto.getDateOfBirth() != null && !dto.getDateOfBirth().equals(user.getDateOfBirth())) {
+            throw new OkulProjectException("Date of birth cannot be changed");
         }
+        if (dto.getBirthPlace() != null && !dto.getBirthPlace().equals(user.getBirthPlace())) {
+            throw new OkulProjectException("Birth place cannot be changed");
+        }
+        if (dto.getGender() != null && dto.getGender() != user.getGender()) {
+            throw new OkulProjectException("Gender cannot be changed");
+        }
+        if (dto.getRole() != null && dto.getRole() != user.getRole()) {
+            throw new OkulProjectException("Role cannot be changed");
+        }
+        // NOT: enabled READ_ONLY olduğundan DTO'dan gelmez; ayrıca guard gerekmez.
 
-        if (user.getRole() == Role.TEACHER && dto.getTeacherDetailsDTO() != null) {
-            Boolean requestedIsAdvisor = dto.getTeacherDetailsDTO().getIsAdvisor();
-            if (requestedIsAdvisor != null) {
-                if (user.getTeacherDetails() == null) {
-                    user.setTeacherDetails(new TeacherDetails());
-                }
-                Boolean currentIsAdvisor = user.getTeacherDetails().getIsAdvisor();
-                if (Objects.equals(currentIsAdvisor, requestedIsAdvisor)) {
-                    if (requestedIsAdvisor) {
-                        throw new OkulProjectException("This teacher is already assigned as an advisor");
-                    } else {
-                        throw new OkulProjectException("This teacher is already unassigned as an advisor");
-                    }
-                }
-                user.getTeacherDetails().setIsAdvisor(requestedIsAdvisor);
-            }
-        } else if (dto.getTeacherDetailsDTO() != null && dto.getTeacherDetailsDTO().getIsAdvisor() != null) {
-            throw new OkulProjectException("Advisor status can only be updated for teachers");
+        // ---------- MUTABLE FIELDS ----------
+        if (dto.getFirstName() != null) {
+            user.setFirstName(dto.getFirstName().trim());
         }
-        User savedUser = userRepository.save(user);
-        return mapperUtil.convert(savedUser, UserDTO.class);
+        if (dto.getLastName() != null) {
+            user.setLastName(dto.getLastName().trim());
+        }
+        if (dto.getPhoneNumber() != null) {
+            user.setPhoneNumber(dto.getPhoneNumber().trim());
+        }
+        if (dto.getMotherName() != null) {
+            user.setMotherName(dto.getMotherName().trim());
+        }
+        if (dto.getFatherName() !=null){
+            user.setFatherName(dto.getFatherName().trim());
+        }
+        // Username: mutable + uniqueness check
+        if (dto.getUsername() != null) {
+            String newUsername = dto.getUsername().trim();
+            String currentUsername = user.getUsername();
+            if (!newUsername.equals(currentUsername)) {
+                if (userRepository.existsByUsername(newUsername)) {
+                    throw new OkulProjectException("Username already exists: " + newUsername);
+                }
+                user.setUsername(newUsername);
+            }
+        }
+        if (dto.getEmail() != null) {
+            String newEmail = dto.getEmail().trim().toLowerCase();
+            String currentEmail = user.getEmail().toLowerCase();
+            if (!newEmail.equals(currentEmail)) {
+                if (userRepository.existsByEmail(newEmail)) {
+                    throw new OkulProjectException("Email already exists: " + dto.getEmail());
+                }
+                user.setEmail(newEmail);
+            }
+        }
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+        User saved = userRepository.save(user);
+        return mapperUtil.convert(saved, UserDTO.class);
     }
+
+
 
 
 

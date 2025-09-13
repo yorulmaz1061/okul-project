@@ -14,8 +14,8 @@ import com.ozan.okulproject.service.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,13 +33,23 @@ public class TeacherServiceImpl implements TeacherService {
         this.userRepository = userRepository;
     }
 
-
     @Override
     public List<UserDTO> getAllTeacherDetails() {
-        List<User> allTeacherWithDetails = userRepository.findAllTeacherWithDetails();
-        return allTeacherWithDetails.stream()
-                .map(user -> mapperUtil.convert(user, UserDTO.class)).collect(Collectors.toList());
+        List<User> teachers = userRepository.findAllByRoleAndIsDeleted(Role.TEACHER, false);
 
+        return teachers.stream()
+                .map(u -> {
+                    UserDTO dto = mapperUtil.convert(u, UserDTO.class);
+                    if (dto.getTeacherDetailsDTO() == null) {
+                        TeacherDetailsDTO td = new TeacherDetailsDTO();
+                        td.setIsAdvisor(false);
+                        dto.setTeacherDetailsDTO(td);
+                    } else if (dto.getTeacherDetailsDTO().getIsAdvisor() == null) {
+                        dto.getTeacherDetailsDTO().setIsAdvisor(false);
+                    }
+                    return dto;
+                })
+                .toList();
     }
 
     @Override
@@ -53,8 +63,12 @@ public class TeacherServiceImpl implements TeacherService {
                         .lastName(userDTO.getLastName())
                         .phoneNumber(userDTO.getPhoneNumber())
                         .email(userDTO.getEmail())
-                        .isAdvisor(userDTO.getTeacherDetailsDTO().getIsAdvisor())
-                        .build()).toList();
+                        .isAdvisor(
+                                userDTO.getTeacherDetailsDTO() != null &&
+                                        Boolean.TRUE.equals(userDTO.getTeacherDetailsDTO().getIsAdvisor())
+                        )
+                        .build())
+                .toList();
     }
 
     @Override
@@ -74,7 +88,6 @@ public class TeacherServiceImpl implements TeacherService {
                 .stream().filter(teacher -> teacher.getTeacherDetailsDTO().getLessons().isEmpty())
                 .map(teacher -> teacher.getId() + " - " + teacher.getFirstName() + " - " + teacher.getLastName())
                 .toList();
-
     }
 
     @Override

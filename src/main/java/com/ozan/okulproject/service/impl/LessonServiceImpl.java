@@ -4,7 +4,6 @@ import com.ozan.okulproject.dto.logic.EducationTermDTO;
 import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.LessonScheduleDTO;
 import com.ozan.okulproject.dto.logic.StudentLessonInfoDTO;
-import com.ozan.okulproject.dto.users.StudentDetailsDTO;
 import com.ozan.okulproject.dto.users.UserDTO;
 import com.ozan.okulproject.entity.User;
 import com.ozan.okulproject.entity.logic.EducationTerm;
@@ -17,7 +16,6 @@ import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.mapper.MapperUtil;
 import com.ozan.okulproject.repository.*;
 import com.ozan.okulproject.service.LessonService;
-import com.ozan.okulproject.service.UserService;
 import com.ozan.okulproject.service.helper.GradeCalculator;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -296,6 +294,13 @@ public class LessonServiceImpl implements LessonService {
         }
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new OkulProjectException("Teacher not found with id: " + teacherId));
+        if (teacher.getRole() != Role.TEACHER)
+            throw new OkulProjectException("Only TEACHER can be assigned.");
+        if (!teacher.isEnabled())
+            throw new OkulProjectException("Teacher account is disabled.");
+        if (lesson.getTeacher() != null && lesson.getTeacher().getId().equals(teacherId)) {
+            throw new OkulProjectException("Teacher is already assigned to this lesson");
+        }
         lesson.setTeacher(teacher);
         lesson.setIsTeacherAssigned(true);
         Lesson saved = lessonRepository.save(lesson);
@@ -322,10 +327,6 @@ public class LessonServiceImpl implements LessonService {
             etDto.setId(saved.getEducationTerm().getId());
             etDto.setTermLabel(saved.getEducationTerm().getTermLabel());
             dto.setEducationTermId(etDto);
-            if (dto.getEducationTermId() == null) {
-                dto.setEducationTermId(new EducationTermDTO());
-            }
-            dto.getEducationTermId().setId(saved.getEducationTerm().getId());
         }
         dto.setTotalStudentsCounts(String.valueOf(
                 saved.getStudentLessonInfo() == null ? 0 : saved.getStudentLessonInfo().size()
@@ -333,17 +334,6 @@ public class LessonServiceImpl implements LessonService {
         return dto;
     }
 
-    private boolean overlaps(LocalTime aStart, LocalTime aEnd, LocalTime bStart, LocalTime bEnd) {
-        return aStart.isBefore(bEnd) && aEnd.isAfter(bStart);
-    }
-
-    private boolean hasDayIntersection(List<Day> a, List<Day> b) {
-        if (a == null || b == null || a.isEmpty() || b.isEmpty()) return false;
-        Set<Day> set = new HashSet<>(a.size() <= b.size() ? a : b);
-        List<Day> other = (a.size() <= b.size() ? b : a);
-        for (Day d : other) if (set.contains(d)) return true;
-        return false;
-    }
     @Override
     @Transactional
     public LessonScheduleDTO deleteLessonScheduleByLessonId(Long lessonId) {
@@ -375,7 +365,6 @@ public class LessonServiceImpl implements LessonService {
         dto.setLesson(lDto);
         return dto;
     }
-
     @Override
     @Transactional
     public StudentLessonInfoDTO enrollStudent(Long lessonId, Long studentId) {
@@ -383,27 +372,54 @@ public class LessonServiceImpl implements LessonService {
         if (lesson == null) throw new OkulProjectException("Lesson not found with id: " + lessonId);
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new OkulProjectException("Student not found with id: " + studentId));
-        if (student.getRole() != Role.STUDENT){
+        if (student.getRole() != Role.STUDENT)
             throw new OkulProjectException("Only students can enroll to this lesson.");
-        }
-        if (!student.isEnabled()) throw new OkulProjectException("Student is not enabled.");
+        if (!student.isEnabled())
+            throw new OkulProjectException("Student is not enabled.");
         boolean exists = studentLessonInfoRepository
                 .existsByLesson_IdAndStudent_IdAndIsDeletedFalse(lessonId, studentId);
         if (exists) throw new OkulProjectException("Student already enrolled to this lesson.");
+        List<LessonSchedule> targetSchedules =
+                lessonScheduleRepository.findAllByLesson_IdAndIsDeletedFalse(lessonId);
+        if (!targetSchedules.isEmpty()) {
+            List<LessonSchedule> otherSchedules =
+                    studentLessonInfoRepository.findAllByStudent_IdAndIsDeletedFalse(studentId).stream()
+                            .map(e -> e.getLesson().getId())
+                            .filter(id -> !Objects.equals(id, lessonId))
+                            .distinct()
+                            .flatMap(id -> lessonScheduleRepository
+                                    .findAllByLesson_IdAndIsDeletedFalse(id).stream())
+                            .toList();
+            boolean conflict = targetSchedules.stream().anyMatch(tgt ->
+                    otherSchedules.stream().anyMatch(oth ->
+                            hasDayIntersection(tgt.getDayList(), oth.getDayList()) &&
+                                    overlaps(tgt.getStartTime(), tgt.getEndTime(), oth.getStartTime(), oth.getEndTime())
+                    )
+            );
+            if (conflict) {
+                throw new OkulProjectException(
+                        "Schedule conflict: Student has another enrolled lesson that overlaps with this lesson's slot(s).");
+            }
+        }
         StudentLessonInfo sli = new StudentLessonInfo();
         sli.setLesson(lessonRepository.getReferenceById(lessonId));
         sli.setStudent(userRepository.getReferenceById(studentId));
         studentLessonInfoRepository.save(sli);
-
         StudentLessonInfoDTO dto = new StudentLessonInfoDTO();
-        UserDTO s = new UserDTO(); s.setId(student.getId()); s.setFirstName(student.getFirstName()); s.setLastName(student.getLastName());
+        UserDTO s = new UserDTO();
+        s.setId(student.getId());
+        s.setFirstName(student.getFirstName());
+        s.setLastName(student.getLastName());
         dto.setStudent(s);
-        LessonDTO l = new LessonDTO(); l.setId(lesson.getId());
-        if (lesson.getEducationTerm()!=null) {
-            EducationTermDTO et = new EducationTermDTO(); et.setId(lesson.getEducationTerm().getId()); et.setTermLabel(lesson.getEducationTerm().getTermLabel());
-            l.setEducationTermId(et); l.setTermLabel(et.getTermLabel());
+        LessonDTO l = new LessonDTO();
+        l.setId(lesson.getId());
+        if (lesson.getEducationTerm() != null) {
+            EducationTermDTO et = new EducationTermDTO();
+            et.setId(lesson.getEducationTerm().getId());
+            et.setTermLabel(lesson.getEducationTerm().getTermLabel());
+            l.setEducationTermId(et);
+            l.setTermLabel(et.getTermLabel());
         }
-
         long cnt = studentLessonInfoRepository.countByLesson_IdAndIsDeletedFalse(lessonId);
         l.setTotalStudentsCounts(String.valueOf(cnt));
 
@@ -412,13 +428,42 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
+    @Transactional
     public void unenrollStudentFromLesson(Long lessonId, Long studentId) {
         Lesson lesson = lessonRepository.findByIsDeletedAndId(false, lessonId);
-        if (lesson == null) throw new OkulProjectException("Lesson not found with id: " + lessonId);
-        StudentLessonInfo sli = studentLessonInfoRepository.findByLesson_IdAndStudent_IdAndIsDeletedFalse(lessonId,studentId)
-                .orElseThrow(()->new OkulProjectException("Enrollment not found for student "+ studentId));
+        if (lesson == null) {
+            throw new OkulProjectException("Lesson not found with id: " + lessonId);
+        }
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new OkulProjectException("Student not found with id: " + studentId));
+        if (student.getRole() != Role.STUDENT) {
+            throw new OkulProjectException("Only STUDENT can be unenrolled.");
+        }
+        StudentLessonInfo sli = studentLessonInfoRepository
+                .findByLesson_IdAndStudent_IdAndIsDeletedFalse(lessonId, studentId)
+                .orElseThrow(() -> new OkulProjectException(
+                        "Enrollment not found for student " + studentId + " in lesson " + lessonId));
+
         sli.setIsDeleted(true);
         studentLessonInfoRepository.save(sli);
+        long cnt = studentLessonInfoRepository.countByLesson_IdAndIsDeletedFalse(lessonId);
+        lesson.setStudentLessonInfo(
+                lesson.getStudentLessonInfo().stream()
+                        .filter(info -> !info.getIsDeleted())
+                        .collect(Collectors.toList())
+        );
+        lessonRepository.save(lesson);
+    }
+
+    private boolean overlaps(LocalTime aStart, LocalTime aEnd, LocalTime bStart, LocalTime bEnd) {
+        return aStart.isBefore(bEnd) && aEnd.isAfter(bStart);
+    }
+    private boolean hasDayIntersection(List<Day> a, List<Day> b) {
+        if (a == null || b == null || a.isEmpty() || b.isEmpty()) return false;
+        Set<Day> set = new HashSet<>(a.size() <= b.size() ? a : b);
+        List<Day> other = (a.size() <= b.size() ? b : a);
+        for (Day d : other) if (set.contains(d)) return true;
+        return false;
     }
 
     @Override

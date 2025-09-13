@@ -22,20 +22,23 @@ public class Lesson extends BaseEntity {
     private Boolean isMandatory;
     private Boolean isTeacherAssigned;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "teacher_id")
-    User teacher;
+    @JoinColumn(
+            name = "teacher_id",
+            foreignKey = @ForeignKey(name = "fk_lessons_teacher"))
+    //@JoinColumn(name = "teacher_id")
+    //@org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
+    private User teacher;
 
     @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    List<LessonSchedule> lessonScheduleList = new ArrayList<>();
+    private List<LessonSchedule> lessonScheduleList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "education_term_id",nullable = false)
-    EducationTerm educationTerm;
+    private EducationTerm educationTerm;
 
     @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    List<StudentLessonInfo> studentLessonInfo = new ArrayList<>();
+    private List<StudentLessonInfo> studentLessonInfo = new ArrayList<>();
 
 
 }

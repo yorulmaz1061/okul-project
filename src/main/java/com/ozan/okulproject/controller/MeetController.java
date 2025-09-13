@@ -27,7 +27,6 @@ public class MeetController {
     public ResponseEntity<ResponseWrapper> createMeet(@RequestBody MeetDTO dto){
         MeetDTO saved = meetService.save(dto);
         return ResponseEntity.ok(new ResponseWrapper("Meet is successfully created",saved, HttpStatus.CREATED));
-
     }
 
     @ExecutionTime
@@ -38,6 +37,7 @@ public class MeetController {
         String msg = list.isEmpty() ? "No meets found for user " + userId :"Meet is successfully retrieved";
         return ResponseEntity.ok(new ResponseWrapper(msg,list, HttpStatus.OK));
     }
+
     @ExecutionTime
     @DeleteMapping("/{meetId}")
     @Operation(summary = "Delete meet by meet id")
@@ -45,7 +45,6 @@ public class MeetController {
         meetService.deleteMeet(meetId);
         return ResponseEntity.ok(new ResponseWrapper("Meet is successfully deleted",HttpStatus.OK));
     }
-
 
 
 }

@@ -22,6 +22,7 @@ public interface UserService {
 
     UserDTO deleteUserById(Long id);
 
+    UserDTO getUserByUsername(String username);
 
 }
 

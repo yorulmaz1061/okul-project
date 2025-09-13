@@ -22,7 +22,7 @@ public class UserDTO {
     private Long id;
 
     @NotNull(message = "Please enter username.")
-    @Size(min = 4, max = 16, message = "Your username should be at least 4 characters.")
+    @Size(min = 2, max = 20, message = "Your username should be at least 4 characters.")
     @Pattern(regexp = "\\A(?!\\s*\\Z).+", message = "Your username must consist of the characters.")
     private String username;
 
@@ -34,12 +34,12 @@ public class UserDTO {
     private String ssn;
 
     @NotNull(message = "Please enter first name.")
-    @Size(min = 2, max = 16, message = "Your name should be at least 4 characters.")
+    @Size(min = 2, max = 20, message = "Your name should be at least 4 characters.")
     @Pattern(regexp = "\\A(?!\\s*\\Z).+", message = "Your name must consist of the characters.")
     private String firstName;
 
     @NotNull(message = "Please enter lastname")
-    @Size(min = 4, max = 16, message = "Surname should be at least 4 chars")
+    @Size(min = 2, max = 20, message = "Surname should be at least 4 chars")
     @Pattern(regexp = "\\A(?!\\s*\\Z).+", message = "Surname must consist of the characters.")
     private String lastName;
 
@@ -49,7 +49,7 @@ public class UserDTO {
     private LocalDate dateOfBirth;
 
     @NotNull(message = "Please enter birthplace")
-    @Size(min = 2, max = 16, message = "Your birthplace should be at least 2 characters")
+    @Size(min = 2, max = 20, message = "Your birthplace should be at least 2 characters")
     @Pattern(regexp = "\\A(?!\\s*\\Z).+", message = "Your birthplace must consist of the characters.")
     private String birthPlace;
 
@@ -77,7 +77,7 @@ public class UserDTO {
     private String motherName;
 
     @NotNull(message = "Please enter your father name")
-    @Size(min = 2, max = 16, message = "Your father name should be at least 2 characters")
+    @Size(min = 2, max = 20, message = "Your father name should be at least 2 characters")
     @Pattern(regexp = "\\A(?!\\s*\\Z).+", message = "Your father name must consist of characters a-z and 0-9 ")
     private String fatherName;
 

@@ -7,6 +7,7 @@ import com.ozan.okulproject.entity.StudentDetails;
 import com.ozan.okulproject.entity.TeacherDetails;
 import com.ozan.okulproject.entity.User;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -22,21 +23,32 @@ public class OkulProjectApplication {
         SpringApplication.run(OkulProjectApplication.class, args);
     }
 
-@Bean
-public ModelMapper mapper(){
-    ModelMapper modelMapper = new ModelMapper();
+    @Bean
+    public ModelMapper mapper() {
+        ModelMapper modelMapper = new ModelMapper();
 
-    // Explicit mapping from User → UserDTO
-    modelMapper.typeMap(User.class, UserDTO.class).addMappings(mapper -> {
-        mapper.map(User::getTeacherDetails, UserDTO::setTeacherDetailsDTO);
-        mapper.map(User::getStudentDetails, UserDTO::setStudentDetailsDTO);
-    });
-    // Explicit mapping from TeacherDetails → TeacherDetailsDTO
-    modelMapper.typeMap(TeacherDetails.class, TeacherDetailsDTO.class);
-    modelMapper.typeMap(StudentDetails.class, StudentDetailsDTO.class);
-    return modelMapper;
+        // User → UserDTO mapping
+        TypeMap<User, UserDTO> userMap = modelMapper.typeMap(User.class, UserDTO.class);
+        userMap.addMappings(mapper -> {
+            // TeacherDetails ve StudentDetails özel map
+            mapper.map(User::getTeacherDetails, UserDTO::setTeacherDetailsDTO);
+            mapper.map(User::getStudentDetails, UserDTO::setStudentDetailsDTO);
+        });
 
-}
+        // Eğer teacherDetailsDTO veya studentDetailsDTO null ise map'lememesi için skip
+        userMap.addMappings(mapper -> {
+            mapper.skip(UserDTO::setTeacherDetailsDTO);
+            mapper.skip(UserDTO::setStudentDetailsDTO);
+        });
+
+        // TeacherDetails → TeacherDetailsDTO
+        modelMapper.typeMap(TeacherDetails.class, TeacherDetailsDTO.class);
+
+        // StudentDetails → StudentDetailsDTO
+        modelMapper.typeMap(StudentDetails.class, StudentDetailsDTO.class);
+
+        return modelMapper;
+    }
 
 @Bean
 public PasswordEncoder passwordEncoder() {

@@ -37,7 +37,7 @@ public class EducationController {
     @Operation(summary = "Get Education Term By Id")
     public ResponseEntity<ResponseWrapper> getAllEducationTerm(@PathVariable("id") Long id) throws OkulProjectException {
         EducationTermDTO educationTermDTO = educationTermService.findById(id);
-        return ResponseEntity.ok(new ResponseWrapper("Education Term is successfully retrieved", educationTermDTO, HttpStatus.FOUND));
+        return ResponseEntity.ok(new ResponseWrapper("Education Term is successfully retrieved", educationTermDTO, HttpStatus.OK));
 
     }
 

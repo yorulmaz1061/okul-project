@@ -1,5 +1,6 @@
 package com.ozan.okulproject.service.impl;
 
+import com.ozan.okulproject.dto.users.StudentDetailsDTO;
 import com.ozan.okulproject.dto.users.StudentQuickListDTO;
 import com.ozan.okulproject.dto.users.UserDTO;
 import com.ozan.okulproject.entity.User;
@@ -25,7 +26,6 @@ public class StudentServiceImpl implements StudentService {
         this.studentService = studentService;
     }
 
-
     @Override
     public List<UserDTO> getAllStudentDetails() {
         List<User> allTeacherWithDetails = userRepository.findAllStudentWithDetails();
@@ -36,21 +36,26 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<StudentQuickListDTO> getStudentQuickList() {
         List<UserDTO> allStudentDetails = studentService.getAllStudentDetails();
-        return allStudentDetails.stream()
-                .map( userDTO -> StudentQuickListDTO.builder()
-                        .id(userDTO.getId())
-                        .username(userDTO.getUsername())
-                        .firstName(userDTO.getFirstName())
-                        .lastName(userDTO.getLastName())
-                        .phoneNumber(userDTO.getPhoneNumber())
-                        .email(userDTO.getEmail())
-                        .totalAbsence(userDTO.getStudentDetailsDTO().getTotalAbsence())
-                        .totalMidtermExamsAverageGrade(userDTO.getStudentDetailsDTO().getTotalMidtermExamsAverageGrade())
-                        .totalFinalExamsAverageGrade(userDTO.getStudentDetailsDTO().getTotalFinalExamsAverageGrade())
-                        .totalTermAverageGrade(userDTO.getStudentDetailsDTO().getTotalTermAverageGrade())
-                        .totalTermLetterScore(userDTO.getStudentDetailsDTO().getTotalTermLetterScore())
-                .build()).toList();
-    }
 
+        return allStudentDetails.stream()
+                .map(u -> {
+                    StudentDetailsDTO sd = u.getStudentDetailsDTO();
+                    if (sd == null) sd = new StudentDetailsDTO();
+                    return StudentQuickListDTO.builder()
+                            .id(u.getId())
+                            .username(u.getUsername())
+                            .firstName(u.getFirstName())
+                            .lastName(u.getLastName())
+                            .phoneNumber(u.getPhoneNumber())
+                            .email(u.getEmail())
+                            .totalAbsence(sd.getTotalAbsence())
+                            .totalMidtermExamsAverageGrade(sd.getTotalMidtermExamsAverageGrade())
+                            .totalFinalExamsAverageGrade(sd.getTotalFinalExamsAverageGrade())
+                            .totalTermAverageGrade(sd.getTotalTermAverageGrade())
+                            .totalTermLetterScore(sd.getTotalTermLetterScore())
+                            .build();
+                })
+                .toList();
+    }
 
 }
