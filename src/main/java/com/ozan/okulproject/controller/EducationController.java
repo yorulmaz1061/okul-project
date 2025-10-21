@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.List;
 
 @RestController
@@ -25,7 +26,7 @@ public class EducationController {
 
     @ExecutionTime
     @PostMapping
-    // @RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Create Education Term")
     public ResponseEntity<ResponseWrapper> createEducationTerm(@RequestBody EducationTermDTO dto) {
         educationTermService.save(dto);
@@ -34,6 +35,7 @@ public class EducationController {
 
     @ExecutionTime
     @GetMapping("/{id}")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get Education Term By Id")
     public ResponseEntity<ResponseWrapper> getAllEducationTerm(@PathVariable("id") Long id) throws OkulProjectException {
         EducationTermDTO educationTermDTO = educationTermService.findById(id);
@@ -43,6 +45,7 @@ public class EducationController {
 
     @ExecutionTime
     @GetMapping
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = " Get All Education Terms")
     public ResponseEntity<ResponseWrapper> getAllEducationTerms() {
         List<EducationTermDTO> dtoList = educationTermService.listAllEducationTerms();
@@ -51,6 +54,7 @@ public class EducationController {
 
     @ExecutionTime
     @DeleteMapping("/{id}")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Delete Education Term By Id")
     public ResponseEntity<ResponseWrapper> deleteEducationTermById(@PathVariable("id") Long id) {
         EducationTermDTO educationTermDTO = educationTermService.deleteEducationTermById(id);
@@ -59,6 +63,7 @@ public class EducationController {
 
     @ExecutionTime
     @PutMapping("/{id}")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Update Education Term")
     public ResponseEntity<ResponseWrapper> updateEducationTerm(@PathVariable("id") Long id, @RequestBody EducationTermDTO dto) throws OkulProjectException {
         EducationTermDTO educationTermDTO = educationTermService.updateEducationTerm(id, dto);

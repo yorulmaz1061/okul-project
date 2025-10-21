@@ -6,9 +6,7 @@ import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.LessonScheduleDTO;
 import com.ozan.okulproject.dto.logic.StudentLessonInfoDTO;
 import com.ozan.okulproject.entity.ResponseWrapper;
-import com.ozan.okulproject.entity.logic.Lesson;
 import com.ozan.okulproject.exception.OkulProjectException;
-import com.ozan.okulproject.repository.LessonRepository;
 import com.ozan.okulproject.service.LessonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -24,15 +23,14 @@ import java.util.List;
 @Tag(name = "LessonController", description = "Lesson API")
 public class LessonController {
     private final LessonService lessonService;
-    private final LessonRepository lessonRepository;
 
-    public LessonController(LessonService lessonService, LessonRepository lessonRepository) {
+    public LessonController(LessonService lessonService) {
         this.lessonService = lessonService;
-        this.lessonRepository = lessonRepository;
     }
 
     @ExecutionTime
     @GetMapping("/{id}")
+    @RolesAllowed({ "Admin", "Teacher", "Student"})
     @Operation(summary = "Get Lesson By Id")
     public ResponseEntity<ResponseWrapper> getLessonById(@PathVariable("id") Long id) throws OkulProjectException {
         LessonDTO lessonDTO = lessonService.findById(id);
@@ -40,6 +38,7 @@ public class LessonController {
     }
     @ExecutionTime
     @GetMapping
+    @RolesAllowed({ "Admin", "Teacher", "Student"})
     @Operation(summary = "Get All Lessons")
     public ResponseEntity<ResponseWrapper> getAllLessons(){
         List<LessonDTO> dtoList = lessonService.listAllLessons();
@@ -48,6 +47,7 @@ public class LessonController {
     }
     @ExecutionTime
     @DeleteMapping("/{id}")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Delete Lesson By Id")
     public ResponseEntity<ResponseWrapper> deleteLessonById(@PathVariable("id")Long id){
         LessonDTO lessonDTO = lessonService.deleteById(id);
@@ -55,6 +55,7 @@ public class LessonController {
     }
     @ExecutionTime
     @PostMapping
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Create Lesson")
     public ResponseEntity<ResponseWrapper> createLesson(@RequestBody @Valid LessonDTO dto){
         LessonDTO saved = lessonService.save(dto);
@@ -62,6 +63,7 @@ public class LessonController {
     }
     @ExecutionTime
     @PutMapping("/{id}")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Update Lesson")
     public ResponseEntity<ResponseWrapper> updateLesson(@PathVariable("id") Long id, @RequestBody LessonDTO dto){
         LessonDTO lessonDTO = lessonService.updateLesson(id, dto);
@@ -70,6 +72,7 @@ public class LessonController {
     }
     @ExecutionTime
     @PutMapping("/{lessonId}/teacher")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Assign Teacher To Lesson")
     public ResponseEntity<ResponseWrapper> assignTeacherToLesson(@PathVariable("lessonId") Long lessonId,
             @Valid @RequestBody AssignTeacherRequest request) {
@@ -80,6 +83,7 @@ public class LessonController {
 
     @ExecutionTime
     @PostMapping("/schedule")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Create Lesson Schedule")
     public ResponseEntity<ResponseWrapper> createLessonSchedule(@RequestBody @Valid LessonScheduleDTO dto){
         lessonService.saveLessonSchedule(dto);
@@ -88,6 +92,7 @@ public class LessonController {
 
     @ExecutionTime
     @GetMapping("/schedule/{id}")
+    @RolesAllowed({ "Admin", "Teacher","Student"})
     @Operation(summary = "Get Lesson Schedule By Lesson Id")
     public ResponseEntity<ResponseWrapper> getLessonScheduleById(@PathVariable("id")Long id) {
         LessonScheduleDTO lessonServiceById = lessonService.findLessonScheduleById(id);
@@ -95,6 +100,7 @@ public class LessonController {
     }
     @ExecutionTime
     @DeleteMapping("/schedule/{lessonId}")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Delete Lesson Schedule By Lesson Id")
     public ResponseEntity<ResponseWrapper> deleteLessonScheduleByLessonId(@PathVariable("lessonId")Long lessonId){
        LessonScheduleDTO lessonScheduleDTO =  lessonService.deleteLessonScheduleByLessonId(lessonId);
@@ -103,6 +109,7 @@ public class LessonController {
 
     @ExecutionTime
     @PostMapping("/{lessonId}/students/{studentId}")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Enroll a student to lesson")
     public ResponseEntity<ResponseWrapper> enrollStudentToLesson(@PathVariable("lessonId") Long lessonId,
                                                                  @PathVariable("studentId") Long studentId){
@@ -112,6 +119,7 @@ public class LessonController {
 
     @ExecutionTime
     @DeleteMapping("/{lessonId}/students/{studentId}")
+    @RolesAllowed({ "Admin", "Teacher"})
     @Operation(summary = "Unenroll a student to lesson")
     public ResponseEntity<ResponseWrapper>unenrollStudentToLesson(@PathVariable("lessonId") Long lessonId,
                                                                   @PathVariable("studentId") Long studentId){
@@ -121,6 +129,7 @@ public class LessonController {
 
     @ExecutionTime
     @PutMapping("/{lessonId}/students/{studentId}/grade")
+    @RolesAllowed({"Teacher"})
     @Operation(summary = "Grade a student")
     public ResponseEntity<ResponseWrapper> updateStudentGrade(
             @PathVariable Long lessonId,

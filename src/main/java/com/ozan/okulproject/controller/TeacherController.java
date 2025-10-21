@@ -13,11 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.List;
 
 @RestController
 @RequestMapping("/teachers")
-@Tag(name = "UserController",description = "Teacher API")
+@Tag(name = "TeacherController",description = "Teacher API")
 public class TeacherController {
     private final TeacherService teacherService;
 
@@ -28,7 +29,7 @@ public class TeacherController {
 
     @ExecutionTime
     @GetMapping
-    // @RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get All Teachers Details")
     public ResponseEntity<ResponseWrapper> getAllTeacherDetails(){
         List<UserDTO> dtoList = teacherService.getAllTeacherDetails();
@@ -38,7 +39,7 @@ public class TeacherController {
 
     @ExecutionTime
     @GetMapping("/list")
-    // @RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get Teacher Quick List")
     public ResponseEntity<ResponseWrapper> getTeacherQuickList(){
         List<TeacherQuickListDTO> dtoList = teacherService.getTeacherQuickList();
@@ -47,7 +48,7 @@ public class TeacherController {
 
     @ExecutionTime
     @GetMapping("/list-advisors")
-    // @RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get Advisor Quick List")
     public ResponseEntity<ResponseWrapper> getAdvisorQuickList(){
         List<TeacherQuickListDTO> dtoList = teacherService.getAdvisorQuickList();
@@ -56,6 +57,8 @@ public class TeacherController {
 
     @ExecutionTime
     @PutMapping("/{teacherId}/assign-advisor")
+    @RolesAllowed({"Admin"})
+    @Operation(summary = "Assign Teacher as advisor by Teacher Id")
     public ResponseEntity<ResponseWrapper> assignAdvisor(@PathVariable("teacherId") Long teacherId){
         TeacherDetailsDTO dto = teacherService.assignAdvisor(teacherId);
         return ResponseEntity.ok(new ResponseWrapper("Advisor is successfully assigned",dto, HttpStatus.OK));
@@ -63,6 +66,8 @@ public class TeacherController {
 
     @ExecutionTime
     @PutMapping("/{teacherId}/unassign-advisor")
+    @RolesAllowed({"Admin"})
+    @Operation(summary = "Unassign Teacher as advisor by Teacher Id")
     public ResponseEntity<ResponseWrapper> unassignAdvisor(@PathVariable("teacherId") Long teacherId){
         TeacherDetailsDTO dto = teacherService.unassignAdvisor(teacherId);
         return ResponseEntity.ok(new ResponseWrapper("Advisor is successfully unassigned",dto, HttpStatus.OK));

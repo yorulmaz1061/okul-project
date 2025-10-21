@@ -10,9 +10,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.HandlerMethod;
 
+import javax.naming.AuthenticationException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -38,6 +40,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ResponseWrapper(ex.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR));
     }
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseWrapper handleAccessDeniedException(AccessDeniedException ex) {
+        return new ResponseWrapper(ex.getMessage(), null, HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseWrapper handleAuth(AuthenticationException ex) {
+        return new ResponseWrapper(ex.getMessage(), null, HttpStatus.UNAUTHORIZED);
+    }
+
+
+
+
   /* @ExceptionHandler(OkulProjectException.class)
     public ResponseEntity<ResponseWrapper> serviceException(OkulProjectException se){
         String message = se.getMessage();

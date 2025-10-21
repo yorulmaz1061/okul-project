@@ -27,7 +27,7 @@ public class UserController {
     }
     @ExecutionTime
     @PostMapping
-   // @RolesAllowed("Admin")
+    @RolesAllowed("Admin")
     @Operation(summary = "Create User")
     public ResponseEntity<ResponseWrapper> createUser(@RequestBody @Valid UserDTO dto){
         UserDTO saved = userService.save(dto);
@@ -36,7 +36,7 @@ public class UserController {
 
     @ExecutionTime
     @GetMapping
-    //@RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get All Users")
     public ResponseEntity<ResponseWrapper> getUsers(){
         List<UserDTO> userDTOList = userService.listAllUsers();
@@ -45,7 +45,7 @@ public class UserController {
 
     @ExecutionTime
     @GetMapping({"role/{role}"})
-    //@RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get Users By Role")
     public ResponseEntity<ResponseWrapper> getUsersByRole(@PathVariable("role") Role role){
         List<UserDTO> userDTOList = userService.getAllByRole(role);
@@ -53,7 +53,7 @@ public class UserController {
     }
     @ExecutionTime
     @GetMapping({"id/{id}"})
-    //@RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get User By Id")
     public ResponseEntity<ResponseWrapper> getUserById(@PathVariable("id") Long id){
         UserDTO userDTO = userService.getUserById(id);
@@ -61,7 +61,7 @@ public class UserController {
     }
     @ExecutionTime
     @DeleteMapping({"id/{id}"})
-    //@RolesAllowed("Admin")
+    @RolesAllowed("Admin")
     @Operation(summary = "Delete User By Id")
     public ResponseEntity<ResponseWrapper> deleteUserById(@PathVariable("id") Long id){
         UserDTO userDTO = userService.deleteUserById(id);
@@ -71,7 +71,7 @@ public class UserController {
 
     @ExecutionTime
     @PutMapping(value = {"id/{id}"})
-    //@RolesAllowed("Admin")
+    @RolesAllowed("Admin")
     @Operation(summary = "Update User")
     public ResponseEntity<ResponseWrapper> updateUser(@PathVariable("id") Long id, @RequestBody @Valid UserDTO dto) throws OkulProjectException {
         UserDTO userDTO = userService.updateUser(id, dto);
@@ -80,36 +80,12 @@ public class UserController {
 
     @ExecutionTime
     @GetMapping("/username/{username}")
-    //@RolesAllowed("Admin")
+    @RolesAllowed({"Admin","Teacher"})
     @Operation(summary = "Get user by username")
     public ResponseEntity<ResponseWrapper> getUserByUsername(@PathVariable("username") String username){
         UserDTO dto = userService.getUserByUsername(username);
         return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved",dto, HttpStatus.OK));
     }
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

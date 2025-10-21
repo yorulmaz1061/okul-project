@@ -10,11 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.List;
 
 @RestController
 @RequestMapping("/meets")
-@Tag(name = "Meet", description = "Meet API")
+@Tag(name = "MeetController", description = "Meet API")
 public class MeetController {
     private final MeetService meetService;
 
@@ -23,6 +24,7 @@ public class MeetController {
     }
     @ExecutionTime
     @PostMapping
+    @RolesAllowed({"Teacher"})
     @Operation(summary = "Create a meet")
     public ResponseEntity<ResponseWrapper> createMeet(@RequestBody MeetDTO dto){
         MeetDTO saved = meetService.save(dto);
@@ -31,6 +33,7 @@ public class MeetController {
 
     @ExecutionTime
     @GetMapping("/{userId}")
+    @RolesAllowed({"Admin","Teacher","Student"})
     @Operation(summary = "Get meet by user Id (teacher or student)")
     public ResponseEntity<ResponseWrapper> getMeetById(@PathVariable("userId") Long userId){
         List<MeetDTO> list = meetService.listMeetByUser(userId);
@@ -40,7 +43,8 @@ public class MeetController {
 
     @ExecutionTime
     @DeleteMapping("/{meetId}")
-    @Operation(summary = "Delete meet by meet id")
+    @RolesAllowed({"Teacher"})
+    @Operation(summary = "Delete meet by meet Id")
     public ResponseEntity<ResponseWrapper> deleteMeetById(@PathVariable("meetId") Long meetId){
         meetService.deleteMeet(meetId);
         return ResponseEntity.ok(new ResponseWrapper("Meet is successfully deleted",HttpStatus.OK));
