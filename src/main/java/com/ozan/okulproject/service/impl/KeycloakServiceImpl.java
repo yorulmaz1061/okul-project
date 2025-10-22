@@ -2,7 +2,7 @@ package com.ozan.okulproject.service.impl;
 
 import com.ozan.okulproject.config.KeycloakProperties;
 import com.ozan.okulproject.dto.users.UserDTO;
-import com.ozan.okulproject.repository.KeycloakService;
+import com.ozan.okulproject.service.KeycloakService;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -51,7 +51,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         String userId = getCreatedId(result);
         ClientRepresentation appClient = realmResource.clients()
                 .findByClientId(keycloakProperties.getClientId()).get(0);
-        RoleRepresentation userClientRole = realmResource.clients().get(appClient.getId()) //
+        RoleRepresentation userClientRole = realmResource.clients().get(appClient.getId())
                 .roles().get(userDTO.getRole().getValue()).toRepresentation();
         realmResource.users().get(userId).roles().clientLevel(appClient.getId())
                 .add(List.of(userClientRole));
@@ -60,13 +60,13 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public void delete(String userName) {
+    public void delete(String username) {
         Keycloak keycloak = getKeycloakInstance();
 
         RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
         UsersResource usersResource = realmResource.users();
 
-        List<UserRepresentation> userRepresentations = usersResource.search(userName);
+        List<UserRepresentation> userRepresentations = usersResource.search(username);
         String uid = userRepresentations.get(0).getId();
         usersResource.delete(uid);
 

@@ -7,11 +7,15 @@ import com.ozan.okulproject.enums.Role;
 import com.ozan.okulproject.exception.OkulProjectException;
 import com.ozan.okulproject.mapper.MapperUtil;
 import com.ozan.okulproject.repository.UserRepository;
+import com.ozan.okulproject.service.KeycloakService;
 import com.ozan.okulproject.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -19,21 +23,25 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    //private final KeycloakService keycloakService;
+    private final KeycloakService keycloakService;
     private final MapperUtil mapperUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, MapperUtil mapperUtil, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, KeycloakService keycloakService, MapperUtil mapperUtil, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.keycloakService = keycloakService;
         this.mapperUtil = mapperUtil;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public UserDTO save(UserDTO dto) {
+
         dto.setEnabled(true);
 
-        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+        final String rawPassword = dto.getPassword();
+
+        String encodedPassword = passwordEncoder.encode(rawPassword);
         User user = mapperUtil.convert(dto, User.class);
         user.setPassword(encodedPassword);
 
@@ -50,6 +58,7 @@ public class UserServiceImpl implements UserService {
             user.setTeacherDetails(null);
             user.setStudentDetails(null);
         }
+
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new OkulProjectException("Email already exists: " + dto.getEmail());
         }
@@ -59,7 +68,23 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsBySsn(dto.getSsn())) {
             throw new OkulProjectException("SSN already exists: " + dto.getSsn());
         }
+
         User savedUser = userRepository.save(user);
+
+        UserDTO keycloakDto = mapperUtil.convert(savedUser, UserDTO.class);
+        keycloakDto.setPassword(rawPassword);
+        keycloakDto.setRole(dto.getRole()); // emin olmak için
+
+        Response kcResponse = keycloakService.userCreate(keycloakDto);
+
+        if (kcResponse == null ||
+                kcResponse.getStatus() != HttpStatus.CREATED.value() /* 201 */) {
+            String err = "Keycloak user creation failed (status="
+                    + (kcResponse != null ? kcResponse.getStatus() : "NULL")
+                    + ") for username: " + dto.getUsername();
+            throw new OkulProjectException(err);
+        }
+
         return mapperUtil.convert(savedUser, UserDTO.class);
     }
 
@@ -83,13 +108,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDTO deleteUserById(Long id) {
+
         User user = userRepository.findByIdAndIsDeleted(id, false);
+        if (user == null) {
+            throw new OkulProjectException("User not found with id: " + id);
+        }
+
+        try {
+            keycloakService.delete(user.getUsername());
+        } catch (Exception e) {
+            // Eğer Keycloak'ta silme başarısız olursa, DB soft delete yapma
+            throw new OkulProjectException(
+                    "Keycloak hard delete failed for username: " + user.getUsername());
+        }
+        user.setIsDeleted(true);
+        user.setEnabled(false);
+        user.setLastUpdateDateTime(LocalDateTime.now());
+        userRepository.save(user);
+
+        return mapperUtil.convert(user, UserDTO.class);
+
+
+
+        /*User user = userRepository.findByIdAndIsDeleted(id, false);
         if (user == null) {throw new OkulProjectException("User not found with id: " + id);}
         user.setIsDeleted(true);
         user.setEnabled(false);
         userRepository.save(user);
-        return mapperUtil.convert(user, UserDTO.class);
+        return mapperUtil.convert(user, UserDTO.class);*/
     }
 
     @Override
