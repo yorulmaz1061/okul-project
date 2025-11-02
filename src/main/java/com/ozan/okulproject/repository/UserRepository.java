@@ -6,10 +6,6 @@ import com.ozan.okulproject.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 public interface UserRepository extends JpaRepository<User,Long> {

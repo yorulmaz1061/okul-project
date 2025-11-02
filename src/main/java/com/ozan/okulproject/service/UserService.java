@@ -4,9 +4,7 @@ import com.ozan.okulproject.dto.users.*;
 import com.ozan.okulproject.enums.Role;
 import com.ozan.okulproject.exception.OkulProjectException;
 
-import javax.validation.constraints.Min;
 import java.util.List;
-import java.util.Map;
 
 public interface UserService {
 

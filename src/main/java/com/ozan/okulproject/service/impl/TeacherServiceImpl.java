@@ -14,9 +14,7 @@ import com.ozan.okulproject.service.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TeacherServiceImpl implements TeacherService {

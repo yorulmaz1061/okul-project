@@ -1,13 +1,11 @@
 package com.ozan.okulproject.entity.logic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ozan.okulproject.entity.BaseEntity;
 import com.ozan.okulproject.enums.Term;
 import lombok.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

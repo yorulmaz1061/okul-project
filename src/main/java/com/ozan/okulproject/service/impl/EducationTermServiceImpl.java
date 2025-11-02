@@ -9,10 +9,7 @@ import com.ozan.okulproject.repository.EducationTermRepository;
 import com.ozan.okulproject.service.EducationTermService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
-
-import static org.checkerframework.checker.units.UnitsTools.m;
 
 @Service
 public class EducationTermServiceImpl implements EducationTermService {

@@ -1,7 +1,6 @@
 package com.ozan.okulproject.service;
 
 import com.ozan.okulproject.dto.logic.EducationTermDTO;
-import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.exception.OkulProjectException;
 
 import java.util.List;

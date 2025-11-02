@@ -3,7 +3,6 @@ package com.ozan.okulproject.service;
 import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.LessonScheduleDTO;
 import com.ozan.okulproject.dto.logic.StudentLessonInfoDTO;
-import com.ozan.okulproject.entity.logic.LessonSchedule;
 import com.ozan.okulproject.exception.OkulProjectException;
 
 import javax.validation.Valid;

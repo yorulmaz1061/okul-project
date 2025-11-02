@@ -1,9 +1,7 @@
 package com.ozan.okulproject.mapper;
 
-import com.ozan.okulproject.dto.users.UserDTO;
-import com.ozan.okulproject.entity.User;
+
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;

@@ -6,7 +6,6 @@ import com.ozan.okulproject.dto.logic.LessonDTO;
 import com.ozan.okulproject.dto.logic.MeetDTO;
 import lombok.*;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Getter
